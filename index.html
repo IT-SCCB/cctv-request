@@ -67,7 +67,6 @@
     <button id="tabForm" class="active" onclick="showView('form')">📝 กรอกคำร้องใหม่</button>
     <button id="tabList" onclick="showView('list')">📋 รายการคำร้อง — ใครขอ เมื่อไหร่</button>
   </nav>
-
   <!-- ===== ฟอร์มกรอก ===== -->
   <div id="viewForm" class="card">
     <h2>แบบคำร้องขอดูภาพจากกล้องวงจรปิด (CCTV)</h2>
@@ -102,7 +101,6 @@
           <div class="row"><input type="time" id="timeFrom" value="09:00" required><input type="time" id="timeTo" value="13:00" required></div>
           <span class="muted">จากเวลา ถึงเวลา</span></div>
       </div>
-
       <h3>3. เหตุผลและเอกสารแนบ</h3>
       <label>เนื่องจาก / ตามที่มีเหตุ *</label><textarea id="reason" rows="3" required placeholder="เล่าเหตุการณ์สั้นๆ ว่าขอดูภาพเพราะอะไร"></textarea>
       <label>เอกสารแนบ (เลือกได้หลายข้อ)</label>
@@ -132,7 +130,6 @@
     </div>
     <div id="listBox" class="muted">กำลังโหลด…</div>
   </div>
-
   <!-- ===== กรอกส่วนเจ้าหน้าที่ ===== -->
   <div id="viewStaff" class="card" style="display:none">
     <h2>ส่วนเจ้าหน้าที่เท่านั้น</h2>
@@ -163,7 +160,9 @@
   <div id="printSheet"></div>
   <div class="noprint" style="margin-top:14px;display:none" id="printActions">
     <button class="btn" onclick="window.print()">🖨️ ปริ้นฟอร์มนี้</button>
+    <button class="btn" onclick="window.print()">💾 เซฟเป็นไฟล์ PDF</button>
     <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
+    <p class="muted" style="margin:8px 0 0">กดปุ่มเซฟแล้วเลือกปลายทาง “Save as PDF” ในหน้าต่างที่เปิดขึ้นมา</p>
   </div>
 </div>
 <script>
