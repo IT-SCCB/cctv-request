@@ -238,7 +238,6 @@ function reqType(){ var r=document.querySelector('input[name="reqType"]:checked'
 function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').textContent = ext ? '* (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
-  document.getElementById('idCard').required = ext;
 }
 function submitForm(e){
   e.preventDefault();
