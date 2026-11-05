@@ -32,6 +32,17 @@
   #listBox{overflow-x:auto}
   #listBox table{font-size:13px}
   #listBox th,#listBox td{white-space:nowrap;padding:8px 7px}
+  @media(max-width:640px){
+    #listBox table tr:first-child{display:none}
+    #listBox table,#listBox tbody,#listBox tr,#listBox td{display:block;width:auto}
+    #listBox tr{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 12px;margin-bottom:12px}
+    #listBox td{display:flex;justify-content:space-between;align-items:center;gap:10px;white-space:normal;border-bottom:1px solid #f3f4f6;padding:9px 2px}
+    #listBox td::before{content:attr(data-label);font-weight:700;color:#4338ca;flex-shrink:0}
+    #listBox td:last-child{display:flex;gap:8px;border-bottom:0;padding:12px 2px 6px}
+    #listBox td:last-child::before{display:none}
+    #listBox td:last-child .printbtn{flex:1}
+    #listBox td select{flex:1;min-width:0}
+  }
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
   .modal-box{background:#fff;border-radius:16px;padding:26px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25)}
   .modal-box h2{margin:0 0 8px;color:#166534}
@@ -187,6 +198,7 @@
   </div>
 </div>
 <script>
+
 var THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 var allReqs=[]; var currentReq=null;
 var API_URL = 'https://script.google.com/macros/s/AKfycbyN-RatzNzq27sk-fN1DcQIbiDLGYLRbJxGqMioIFlZn14J4uASBxlkYER5L7hs-yu3/exec';
@@ -296,7 +308,7 @@ function renderList(){
   if(!rows.length){ document.getElementById('listBox').innerHTML='<p>ยังไม่มีคำร้องที่ตรงกับที่ค้น</p>'; return; }
   var h='<table><tr><th>เลขที่</th><th>วันที่ยื่น</th><th>ผู้ขอ</th><th>แผนก</th><th>พื้นที่ / บริเวณ</th><th>วันที่ภาพ</th><th>เวลา</th><th>สถานะ</th><th>เจ้าหน้าที่</th><th></th></tr>';
   rows.forEach(function(r){
-    h+='<tr><td>'+esc(r.id)+'</td><td>'+esc(beShort(r.requestDate))+'</td><td>'+esc(r.title+' '+r.fullName)+'</td><td>'+esc(r.department)+'</td><td>'+esc(r.area)+' / '+esc(r.location)+'</td><td>'+esc(beShort(r.footageDate))+'</td><td>'+esc(timeStr(r.timeFrom))+'–'+esc(timeStr(r.timeTo))+' น.</td><td><select class="st" onchange="changeStatus(\''+r.id+'\',this.value)"><option'+(r.status==='รอตรวจสอบ'?' selected':'')+'>รอตรวจสอบ</option><option'+(r.status==='กำลังดำเนินการ'?' selected':'')+'>กำลังดำเนินการ</option><option'+(r.status==='อนุมัติ'?' selected':'')+'>อนุมัติ</option><option'+(r.status==='ปฏิเสธ'?' selected':'')+'>ปฏิเสธ</option></select></td><td>'+(r.staffDone?'✅ กรอกแล้ว':'⏳ รอกรอก')+'</td><td><button class="printbtn" onclick="openStaff(\''+r.id+'\')">เจ้าหน้าที่</button> <button class="printbtn" onclick="openPrint(\''+r.id+'\')">ดู / ปริ้น</button></td></tr>';
+    h+='<tr><td data-label="เลขที่">'+esc(r.id)+'</td><td data-label="วันที่ยื่น">'+esc(beShort(r.requestDate))+'</td><td data-label="ผู้ขอ">'+esc(r.title+' '+r.fullName)+'</td><td data-label="แผนก">'+esc(r.department)+'</td><td data-label="พื้นที่ / บริเวณ">'+esc(r.area)+' / '+esc(r.location)+'</td><td data-label="วันที่ภาพ">'+esc(beShort(r.footageDate))+'</td><td data-label="เวลา">'+esc(timeStr(r.timeFrom))+'–'+esc(timeStr(r.timeTo))+' น.</td><td data-label="สถานะ"><select class="st" onchange="changeStatus(\''+r.id+'\',this.value)"><option'+(r.status==='รอตรวจสอบ'?' selected':'')+'>รอตรวจสอบ</option><option'+(r.status==='กำลังดำเนินการ'?' selected':'')+'>กำลังดำเนินการ</option><option'+(r.status==='อนุมัติ'?' selected':'')+'>อนุมัติ</option><option'+(r.status==='ปฏิเสธ'?' selected':'')+'>ปฏิเสธ</option></select></td><td data-label="เจ้าหน้าที่">'+(r.staffDone?'✅ กรอกแล้ว':'⏳ รอกรอก')+'</td><td><button class="printbtn" onclick="openStaff(\''+r.id+'\')">เจ้าหน้าที่</button> <button class="printbtn" onclick="openPrint(\''+r.id+'\')">ดู / ปริ้น</button></td></tr>';
   });
   document.getElementById('listBox').innerHTML=h+'</table>';
 }
