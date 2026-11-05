@@ -25,6 +25,7 @@
   .btn.secondary{background:#fff;color:#4338ca;border:1px solid #c7d2fe} .btn.danger{background:#dc2626}
   .ok{background:#dcfce7;color:#166534;padding:12px;border-radius:10px;margin:12px 0}
   .err{background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px;margin:12px 0}
+  .req{color:#dc2626;font-weight:700}
   table{width:100%;border-collapse:collapse;font-size:14px} th,td{border-bottom:1px solid #e5e7eb;padding:9px 7px;text-align:left;vertical-align:top}
   th{color:#4338ca;white-space:nowrap} .st{white-space:nowrap;font-weight:700;min-width:150px;font-size:13px}
   .search{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0} .search input,.search select{flex:1;min-width:160px}
@@ -94,7 +95,7 @@
     <div id="formMsg"></div>
     <form id="reqForm" onsubmit="return submitForm(event)">
       <h3>1. ข้อมูลผู้ขอ</h3>
-      <label>ประเภทผู้ขอ *</label>
+      <label>ประเภทผู้ขอ <span class="req">*</span></label>
       <div style="display:flex;gap:22px;flex-wrap:wrap">
         <label class="check"><input type="radio" name="reqType" value="ภายใน" checked onchange="onReqTypeChange()"> ภายใน (พนักงาน)</label>
         <label class="check"><input type="radio" name="reqType" value="ภายนอก" onchange="onReqTypeChange()"> ภายนอก (บุคคลภายนอก)</label>
@@ -102,28 +103,28 @@
       <div class="row">
         <div><label>คำนำหน้า</label>
           <select id="title"><option>นาย</option><option>นาง</option><option>นางสาว</option></select></div>
-        <div><label>ชื่อ-นามสกุล *</label><input id="fullName" required placeholder="เช่น สมชาย ใจดี"></div>
+        <div><label>ชื่อ-นามสกุล <span class="req">*</span></label><input id="fullName" required placeholder="เช่น สมชาย ใจดี"></div>
       </div>
       <div class="row">
-        <div><label>บัตรประชาชนเลขที่ <span id="idCardHint">* (13 หลัก)</span></label><input id="idCard" inputmode="numeric" placeholder="13 หลัก ไม่ต้องใส่ขีด"></div>
-        <div><label>หมายเลขโทรศัพท์ *</label><input id="phone" required placeholder="เช่น 0812345678"></div>
+        <div><label>บัตรประชาชนเลขที่ <span id="idCardHint"><span class="req">*</span> (13 หลัก)</span></label><input id="idCard" inputmode="numeric" placeholder="13 หลัก ไม่ต้องใส่ขีด"></div>
+        <div><label>หมายเลขโทรศัพท์ <span class="req">*</span></label><input id="phone" required placeholder="เช่น 0812345678"></div>
       </div>
-      <label>แผนก *</label><input id="department" required placeholder="เช่น บัญชีและการเงิน">
+      <label>แผนก <span class="req">*</span></label><input id="department" required placeholder="เช่น บัญชีและการเงิน">
 
       <h3>2. ภาพที่ขอดู</h3>
       <div class="row">
-        <div><label>พื้นที่ *</label><input id="area" required placeholder="เช่น อาคารสำนักงาน / สนามกอล์ฟ"></div>
-        <div><label>บริเวณ *</label><input id="location" required placeholder="เช่น ลานจอดรถหน้าอาคาร"></div>
+        <div><label>พื้นที่ <span class="req">*</span></label><input id="area" required placeholder="เช่น อาคารสำนักงาน / สนามกอล์ฟ"></div>
+        <div><label>บริเวณ <span class="req">*</span></label><input id="location" required placeholder="เช่น ลานจอดรถหน้าอาคาร"></div>
       </div>
       <div class="row">
-        <div><label>วันที่ของภาพที่ขอดู *</label><input type="date" id="footageDate" required></div>
-        <div><label>ช่วงเวลาที่ขอดู *</label>
+        <div><label>วันที่ของภาพที่ขอดู <span class="req">*</span></label><input type="date" id="footageDate" required></div>
+        <div><label>ช่วงเวลาที่ขอดู <span class="req">*</span></label>
           <div class="row"><input type="time" id="timeFrom" value="09:00" required><input type="time" id="timeTo" value="13:00" required></div>
           <span class="muted">จากเวลา ถึงเวลา</span></div>
       </div>
 
       <h3>3. เหตุผลและเอกสารแนบ</h3>
-      <label>เนื่องจาก / ตามที่มีเหตุ *</label><textarea id="reason" rows="3" required placeholder="เล่าเหตุการณ์สั้นๆ ว่าขอดูภาพเพราะอะไร"></textarea>
+      <label>เนื่องจาก / ตามที่มีเหตุ <span class="req">*</span></label><textarea id="reason" rows="3" required placeholder="เล่าเหตุการณ์สั้นๆ ว่าขอดูภาพเพราะอะไร"></textarea>
       <label>เอกสารแนบ (เลือกได้หลายข้อ)</label>
       <label class="check"><input type="checkbox" class="att" value="สำเนาบัตรประจำตัวประชาชน"> สำเนาบัตรประจำตัวประชาชน</label>
       <label class="check"><input type="checkbox" class="att" value="หมายศาล"> หมายศาล</label>
@@ -151,7 +152,6 @@
     </div>
     <div id="listBox" class="muted">กำลังโหลด…</div>
   </div>
-
   <!-- ===== กรอกส่วนเจ้าหน้าที่ ===== -->
   <div id="viewStaff" class="card" style="display:none">
     <h2>ส่วนเจ้าหน้าที่เท่านั้น</h2>
@@ -198,7 +198,6 @@
   </div>
 </div>
 <script>
-
 var THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 var allReqs=[]; var currentReq=null;
 var API_URL = 'https://script.google.com/macros/s/AKfycbyN-RatzNzq27sk-fN1DcQIbiDLGYLRbJxGqMioIFlZn14J4uASBxlkYER5L7hs-yu3/exec';
@@ -270,7 +269,7 @@ function demo(fn,arg){
 function reqType(){ var r=document.querySelector('input[name="reqType"]:checked'); return r?r.value:'ภายนอก'; }
 function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
-  document.getElementById('idCardHint').textContent = ext ? '* (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
+  document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
 function submitForm(e){
   e.preventDefault();
