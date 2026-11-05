@@ -28,6 +28,10 @@
   th{color:#4338ca;white-space:nowrap} .st{white-space:nowrap;font-weight:700}
   .search{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0} .search input,.search select{flex:1;min-width:160px}
   .printbtn{white-space:nowrap}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal-box{background:#fff;border-radius:16px;padding:26px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .modal-box h2{margin:0 0 8px;color:#166534}
+  .modal-box .btn{margin:8px 4px 0}
   /* ---- หน้าปริ้น v12: พื้นหลัง PDF ต้นฉบับ + วางตัวหนังสือทับ ---- */
   /* ภาพพื้นหลัง = หน้า PDF ต้นฉบับ IT CCTV R4 เรนเดอร์ 200dpi (1654x2339)
      พิกัดทุกช่องวัดจาก PDF ต้นฉบับระดับตัวอักษร (ไฟล์ cctv-overlay-coords.json)
@@ -101,6 +105,7 @@
           <div class="row"><input type="time" id="timeFrom" value="09:00" required><input type="time" id="timeTo" value="13:00" required></div>
           <span class="muted">จากเวลา ถึงเวลา</span></div>
       </div>
+
       <h3>3. เหตุผลและเอกสารแนบ</h3>
       <label>เนื่องจาก / ตามที่มีเหตุ *</label><textarea id="reason" rows="3" required placeholder="เล่าเหตุการณ์สั้นๆ ว่าขอดูภาพเพราะอะไร"></textarea>
       <label>เอกสารแนบ (เลือกได้หลายข้อ)</label>
@@ -130,6 +135,7 @@
     </div>
     <div id="listBox" class="muted">กำลังโหลด…</div>
   </div>
+
   <!-- ===== กรอกส่วนเจ้าหน้าที่ ===== -->
   <div id="viewStaff" class="card" style="display:none">
     <h2>ส่วนเจ้าหน้าที่เท่านั้น</h2>
@@ -163,6 +169,16 @@
     <button class="btn" onclick="window.print()">💾 เซฟเป็นไฟล์ PDF</button>
     <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
     <p class="muted" style="margin:8px 0 0">กดปุ่มเซฟแล้วเลือกปลายทาง “Save as PDF” ในหน้าต่างที่เปิดขึ้นมา</p>
+  </div>
+  <div id="saveModal" class="modal noprint" style="display:none">
+    <div class="modal-box">
+      <h2>✅ บันทึกเรียบร้อยแล้ว</h2>
+      <p>เลขที่คำร้อง: <b id="savedReqId"></b></p>
+      <p class="muted">ปริ้นหรือเซฟเป็นไฟล์ PDF ได้เลย</p>
+      <button class="btn" onclick="modalPrint()">🖨️ ปริ้นฟอร์มนี้</button>
+      <button class="btn" onclick="modalPrint()">💾 เซฟเป็นไฟล์ PDF</button>
+      <button class="btn secondary" onclick="closeSaveModal()">ปิด</button>
+    </div>
   </div>
 </div>
 <script>
@@ -255,11 +271,15 @@ function submitForm(e){
     showMsg('formMsg','บันทึกแล้ว เลขที่คำร้อง: <b>'+res.id+'</b> — กด “รายการคำร้อง” เพื่อดูและปริ้น','ok');
     document.getElementById('reqForm').reset(); document.getElementById('footageDate').value=todayISO(); onReqTypeChange();
     currentReqId=res.id;
+    openPrint(res.id,function(){ showSaveModal(res.id); });
   });
   return false;
 }
 var currentReqId=null;
 function showMsg(id,html,cls){ var el=document.getElementById(id); el.className=cls; el.innerHTML=html; }
+function showSaveModal(id){ document.getElementById('savedReqId').textContent=id; document.getElementById('saveModal').style.display='flex'; }
+function closeSaveModal(){ document.getElementById('saveModal').style.display='none'; }
+function modalPrint(){ closeSaveModal(); window.print(); }
 function loadList(){ server('listRequests',null,function(list){ allReqs=list; renderList(); },function(){ document.getElementById('listBox').textContent='โหลดรายการไม่ได้'; }); }
 function renderList(){
   var q=(document.getElementById('q').value||'').toLowerCase();
@@ -304,17 +324,17 @@ function saveStaff(e){
   });
   return false;
 }
-function openPrint(id){
+function openPrint(id,cb){
   server('getRequest',id,function(r){
     currentReq=r; showView('form'); // ซ่อนฟอร์มชั่วคราว แล้วแสดงเฉพาะหน้าปริ้น
     document.getElementById('viewForm').style.display='none';
     document.getElementById('printActions').style.display='block';
     var atts=['สำเนาบัตรประจำตัวประชาชน','หมายศาล','หนังสือที่ออกจากหน่วยงานราชการ','รายงานประจำวันแจ้งเป็นหลักฐาน'];
-    var attList=(r.attachments||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+    var attList=(Array.isArray(r.attachments)?r.attachments:(r.attachments||'').split(',')).map(function(s){return s.trim();}).filter(Boolean);
     var attHtml=atts.map(function(a){return (attList.indexOf(a)>=0?'☑ ':'☐ ')+a+' ';}).join('');
     var rd=splitDate(r.requestDate), fd=splitDate(r.footageDate);
     var otherBox=(attList.indexOf('อื่นๆ')>=0?'☑':'☐');
-    var attList=(r.attachments||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+    var attList=(Array.isArray(r.attachments)?r.attachments:(r.attachments||'').split(',')).map(function(s){return s.trim();}).filter(Boolean);
     var rd=splitDate(r.requestDate), fd=splitDate(r.footageDate);
     var h='<img class="ovl-bg" src="'+FORM_BG_URL+'" alt="">';
     h+=ovl(124.0,40.1,esc(rd.d))+ovl(147.7,40.1,esc(rd.m))+ovl(174.4,40.1,esc(rd.y));
@@ -342,6 +362,7 @@ function openPrint(id){
     h+=ovlSm(157.6,233.4,esc(r.approverName||''));
     document.getElementById('printSheet').innerHTML=h;
     window.scrollTo(0,0);
+    if(cb) cb();
   });
 }
 </script>
