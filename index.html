@@ -75,13 +75,18 @@
     <div id="formMsg"></div>
     <form id="reqForm" onsubmit="return submitForm(event)">
       <h3>1. ข้อมูลผู้ขอ</h3>
+      <label>ประเภทผู้ขอ *</label>
+      <div style="display:flex;gap:22px;flex-wrap:wrap">
+        <label class="check"><input type="radio" name="reqType" value="ภายใน" onchange="onReqTypeChange()"> ภายใน (พนักงาน)</label>
+        <label class="check"><input type="radio" name="reqType" value="ภายนอก" checked onchange="onReqTypeChange()"> ภายนอก (บุคคลภายนอก)</label>
+      </div>
       <div class="row">
         <div><label>คำนำหน้า</label>
           <select id="title"><option>นาย</option><option>นาง</option><option>นางสาว</option></select></div>
         <div><label>ชื่อ-นามสกุล *</label><input id="fullName" required placeholder="เช่น สมชาย ใจดี"></div>
       </div>
       <div class="row">
-        <div><label>บัตรประชาชนเลขที่ * (13 หลัก)</label><input id="idCard" required inputmode="numeric" placeholder="13 หลัก ไม่ต้องใส่ขีด"></div>
+        <div><label>บัตรประชาชนเลขที่ <span id="idCardHint">* (13 หลัก)</span></label><input id="idCard" inputmode="numeric" placeholder="13 หลัก ไม่ต้องใส่ขีด"></div>
         <div><label>หมายเลขโทรศัพท์ *</label><input id="phone" required placeholder="เช่น 0812345678"></div>
       </div>
       <label>แผนก *</label><input id="department" required placeholder="เช่น บัญชีและการเงิน">
@@ -148,7 +153,7 @@
       <h3>ผู้อนุมัติคำร้องฯ (ผู้จัดการฝ่ายบัญชีและการเงิน)</h3>
       <label>ผลการพิจารณา</label><input id="approverResult" placeholder="เช่น อนุมัติ / ไม่อนุมัติ">
       <label>เหตุผลในการปฏิเสธ (ถ้ามี)</label><textarea id="approverRejectReason" rows="2"></textarea>
-      <label>ชื่อผู้อนุมัติ</label><input id="approverName" placeholder="เช่น อนุมัติ / ไม่อนุมัติ">
+      <label>ชื่อผู้อนุมัติ</label><input id="approverName" placeholder="ชื่อ-นามสกุล">
       <button class="btn" type="submit">💾 บันทึกส่วนเจ้าหน้าที่</button>
       <button class="btn secondary" type="button" onclick="showView('list')">← กลับไปรายการ</button>
     </form>
@@ -187,6 +192,7 @@ function beShort(iso){ iso=isoStr(iso); if(!iso) return ''; var p=iso.split('-')
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 document.getElementById('todayBE').textContent = beText(todayISO());
 document.getElementById('footageDate').value = todayISO();
+onReqTypeChange();
 
 function showView(v){
   document.getElementById('viewForm').style.display = v==='form'?'block':'none';
@@ -228,10 +234,18 @@ function demo(fn,arg){
   if(fn==='updateStatus'){ list.forEach(function(r){ if(r.id===arg.id) r.status=arg.status; }); localStorage.setItem(key,JSON.stringify(list)); return true; }
   if(fn==='updateStaff'){ list.forEach(function(r){ if(r.id===arg.id) Object.assign(r,arg.staff); }); localStorage.setItem(key,JSON.stringify(list)); return true; }
 }
+function reqType(){ var r=document.querySelector('input[name="reqType"]:checked'); return r?r.value:'ภายนอก'; }
+function onReqTypeChange(){
+  var ext = reqType()==='ภายนอก';
+  document.getElementById('idCardHint').textContent = ext ? '* (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
+  document.getElementById('idCard').required = ext;
+}
 function submitForm(e){
   e.preventDefault();
   var idCard=document.getElementById('idCard').value.replace(/\D/g,'');
-  if(idCard.length!==13){ showMsg('formMsg','เลขบัตรประชาชนต้องมี 13 หลัก','err'); return false; }
+  var reqTypeVal=reqType();
+  if(reqTypeVal==='ภายนอก' && idCard.length!==13){ showMsg('formMsg','ภายนอกต้องกรอกเลขบัตรประชาชน 13 หลัก','err'); return false; }
+  if(reqTypeVal==='ภายใน' && idCard.length>0 && idCard.length!==13){ showMsg('formMsg','ถ้ากรอกเลขบัตรประชาชน ต้องมี 13 หลัก','err'); return false; }
   if(document.getElementById('timeFrom').value >= document.getElementById('timeTo').value){ showMsg('formMsg','เวลาเริ่มต้องน้อยกว่าเวลาสิ้นสุด','err'); return false; }
   var atts=[]; document.querySelectorAll('.att:checked').forEach(function(c){atts.push(c.value);});
   var data={ requestDate:todayISO(), title:document.getElementById('title').value, fullName:document.getElementById('fullName').value.trim(),
@@ -241,7 +255,7 @@ function submitForm(e){
     reason:document.getElementById('reason').value.trim(), attachments:atts, otherAttachment:document.getElementById('otherAttachment').value.trim() };
   server('saveRequest',data,function(res){
     showMsg('formMsg','บันทึกแล้ว เลขที่คำร้อง: <b>'+res.id+'</b> — กด “รายการคำร้อง” เพื่อดูและปริ้น','ok');
-    document.getElementById('reqForm').reset(); document.getElementById('footageDate').value=todayISO();
+    document.getElementById('reqForm').reset(); document.getElementById('footageDate').value=todayISO(); onReqTypeChange();
     currentReqId=res.id;
   });
   return false;
