@@ -339,8 +339,8 @@ function ocrExtractName(text){
   words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return!/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
   if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ');};
  }
- return {title:title,fullName:''};}
-  
+ return {title:title,fullName:''};
+ } 
    
 function ocrLoadTesseract(cb,err){
   if(window.Tesseract){ cb(); return; }
