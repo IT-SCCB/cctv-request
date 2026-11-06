@@ -331,13 +331,13 @@ function ocrExtractName(text){
   m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
   if(!m) continue;
   words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
-  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};};
+  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};
 }
  // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
  for(i=0;i<lines.length;i++){
   if(!/ชื่/.test(lines[i])) continue;
   words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return!/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
-  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};};
+  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};
  }
  return {title:title,fullName:''};
  }    
