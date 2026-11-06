@@ -340,8 +340,7 @@ function ocrExtractName(text){
   if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ');};
  }
  return {title:title,fullName:''};
- } 
-   
+ }    
 function ocrLoadTesseract(cb,err){
   if(window.Tesseract){ cb(); return; }
   var s=document.createElement('script');
