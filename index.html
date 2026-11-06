@@ -278,7 +278,7 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v29): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม ----
+// ---- สแกนบัตรประชาชน (v30): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) ----
 var OCR_BASE='ocr'; // ไฟล์ OCR โฮสต์เองที่เดียวกับหน้าเว็บ (GitHub Pages)
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
@@ -307,7 +307,7 @@ function ocrExtractIdCard(text){
 function ocrExtractName(text){
   var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
   var lines=(text||'').split('\n'), i, m, words;
-  for(i=0;i<lines.length;i++){
+  for(i=0;i<lines.length;i++){ 
     m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
     if(!m) continue;
     words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
@@ -329,10 +329,12 @@ function ocrLoadTesseract(cb,err){
   s.onload=function(){ cb(); }; s.onerror=function(){ err(); };
   document.head.appendChild(s);
 }
+// ความคืบหน้า OCR (%) ต้องส่งผ่าน logger ของ createWorker เท่านั้น — tesseract.js v5 ส่ง recognize options ผ่าน postMessage ทั้งก้อน function โคลนไม่ได้ เกิด DataCloneError ทุกครั้งที่ recognize (เจอจาก Console ของพี 6 พ.ย. 13:39)
+function ocrLogger(m){ if(m.status==='recognizing text') ocrSetStep('กำลังอ่านบัตร… '+Math.round(m.progress*100)+'%'); }
 var ocrWorker=null, ocrWorkerPromise=null;
 function ocrGetWorker(){
   if(ocrWorkerPromise) return ocrWorkerPromise;
-  ocrWorkerPromise=Tesseract.createWorker('tha+eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE}).then(function(w){ ocrWorker=w; return w; }).catch(function(e){ ocrWorkerPromise=null; throw e; });
+  ocrWorkerPromise=Tesseract.createWorker('tha+eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE,logger:ocrLogger}).then(function(w){ ocrWorker=w; return w; }).catch(function(e){ ocrWorkerPromise=null; throw e; });
   return ocrWorkerPromise;
 }
 // ทางลัดอ่านเลขบัตร (v29): โมเดลอังกฤษล้วน + อ่านแค่ตัวเลข ย่อเหลือ 2000px ขาวดำล้วน (ไม่เพิ่มคอนทราสต์ — ฮอโลแกรม/แสงสะท้อนทำให้ตัวเลขจางลง)
@@ -340,7 +342,7 @@ function ocrGetWorker(){
 var ocrIdWorker=null, ocrIdWorkerPromise=null;
 function ocrGetIdWorker(){
   if(ocrIdWorkerPromise) return ocrIdWorkerPromise;
-  ocrIdWorkerPromise=Tesseract.createWorker('eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE}).then(function(w){
+  ocrIdWorkerPromise=Tesseract.createWorker('eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE,logger:ocrLogger}).then(function(w){
     ocrIdWorker=w;
     return w.setParameters({tessedit_char_whitelist:'0123456789 ',tessedit_pageseg_mode:'11'}).then(function(){ return w; });
   }).catch(function(e){ ocrIdWorkerPromise=null; throw e; });
@@ -392,7 +394,7 @@ function ocrRecognizeTimeout(worker,cv,ms){
   return new Promise(function(resolve,reject){
     var done=false;
     var to=setTimeout(function(){ if(!done){ done=true; reject(new Error('timeout')); } },ms);
-    worker.recognize(cv,{logger:function(m){ if(m.status==='recognizing text') ocrSetStep('กำลังอ่านบัตร… '+Math.round(m.progress*100)+'%'); }}).then(function(res){ if(!done){ done=true; clearTimeout(to); resolve(res); } }).catch(function(e){ if(!done){ done=true; clearTimeout(to); reject(e); } });
+    worker.recognize(cv).then(function(res){ if(!done){ done=true; clearTimeout(to); resolve(res); } }).catch(function(e){ if(!done){ done=true; clearTimeout(to); reject(e); } });
   });
 }
 // หมุนภาพต้นฉบับก่อน แล้วค่อยย่อ/ขยายให้กว้าง targetW px (2200 = ละเอียด, 800 = หามุมเร็ว)
