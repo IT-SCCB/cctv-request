@@ -223,7 +223,7 @@ function ovl(x,y,t){ return '<div class="ovl" style="left:'+x+'mm;top:'+y+'mm">'
 function ovlSm(x,y,t){ return '<div class="ovl sm" style="left:'+x+'mm;top:'+y+'mm">'+t+'</div>'; }
 function ovlBox(x,y,w,t){ return '<div class="ovl box" style="left:'+x+'mm;top:'+y+'mm;width:'+w+'mm">'+t+'</div>'; }
 function ovlL(x,y,w,t){ return '<div class="ovl left" style="left:'+x+'mm;top:'+y+'mm;width:'+w+'mm">'+t+'</div>'; }
-function chk(x,y){ return '<div class="ovl chk" style="left:'+x+'mm;top:'+y+'mm">✓</div>'; }
+function chk(x,y){ return '<div class="ovl chk" style="left:'+x+'mm;top:'+y+'mm">\u2713</div>'; }
 function ffill(v,g){ return '<span class="fill" style="flex:'+g+' 1 0;min-width:0">'+(v?esc(v):'')+'</span>'; }
 function dotline(){ return '<div class="dline"></div>'; }
 function beShort(iso){ iso=isoStr(iso); if(!iso) return ''; var p=iso.split('-'); if(p.length!==3) return iso; return p[2]+'/'+p[1]+'/'+(+p[0]+543); }
@@ -278,7 +278,8 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v27): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง ----
+// ---- สแกนบัตรประชาชน (v28): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ ----
+var OCR_BASE='ocr'; // ไฟล์ OCR โฮสต์เองที่เดียวกับหน้าเว็บ (GitHub Pages)
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
 function ocrDeconfuse(s){ return (s||'').replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/S/g,'5'); }
@@ -324,14 +325,14 @@ function ocrExtractName(text){
 function ocrLoadTesseract(cb,err){
   if(window.Tesseract){ cb(); return; }
   var s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  s.src=OCR_BASE+'/tesseract.min.js';
   s.onload=function(){ cb(); }; s.onerror=function(){ err(); };
   document.head.appendChild(s);
 }
 var ocrWorker=null, ocrWorkerPromise=null;
 function ocrGetWorker(){
   if(ocrWorkerPromise) return ocrWorkerPromise;
-  ocrWorkerPromise=Tesseract.createWorker('tha+eng').then(function(w){ ocrWorker=w; return w; }).catch(function(e){ ocrWorkerPromise=null; throw e; });
+  ocrWorkerPromise=Tesseract.createWorker('tha+eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE}).then(function(w){ ocrWorker=w; return w; }).catch(function(e){ ocrWorkerPromise=null; throw e; });
   return ocrWorkerPromise;
 }
 // ทางลัดอ่านเลขบัตร (v27): โมเดลอังกฤษล้วน + อ่านแค่ตัวเลข ย่อเหลือ 1100px
@@ -339,7 +340,7 @@ function ocrGetWorker(){
 var ocrIdWorker=null, ocrIdWorkerPromise=null;
 function ocrGetIdWorker(){
   if(ocrIdWorkerPromise) return ocrIdWorkerPromise;
-  ocrIdWorkerPromise=Tesseract.createWorker('eng').then(function(w){
+  ocrIdWorkerPromise=Tesseract.createWorker('eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE}).then(function(w){
     ocrIdWorker=w;
     return w.setParameters({tessedit_char_whitelist:'0123456789 ',tessedit_pageseg_mode:'11'}).then(function(){ return w; });
   }).catch(function(e){ ocrIdWorkerPromise=null; throw e; });
