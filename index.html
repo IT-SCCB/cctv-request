@@ -116,6 +116,7 @@
         <div><label>หมายเลขโทรศัพท์ <span class="req">*</span></label><input id="phone" required placeholder="เช่น 0812345678"></div>
       </div>
       <label>แผนก <span class="req">*</span></label><input id="department" required placeholder="เช่น บัญชีและการเงิน">
+
       <h3>2. ภาพที่ขอดู</h3>
       <div class="row">
         <div><label>พื้นที่ <span class="req">*</span></label><input id="area" required placeholder="เช่น อาคารสำนักงาน / สนามกอล์ฟ"></div>
@@ -277,7 +278,7 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v22): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ ----
+// ---- สแกนบัตรประชาชน (v24): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ ลองหมุน 0/90/180/270 หยุดเมื่อเจอเลขบัตรหรือชื่อ ----
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
 function ocrDeconfuse(s){ return (s||'').replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/S/g,'5'); }
@@ -328,27 +329,50 @@ function ocrFill(id,value){
   el.addEventListener('input',function(){ el.classList.remove('ocr-hl'); },{once:true});
   return true;
 }
+// หมุนภาพต้นฉบับก่อน แล้วค่อยย่อ/ขยายให้กว้าง 2200px (เหมือนที่ทดสอบกับรูปจริงของพี: มุม 90 อ่านได้)
+function ocrPrepCanvas(img,deg){
+  var w=img.width, h=img.height;
+  var rot=document.createElement('canvas');
+  if(deg===90||deg===270){ rot.width=h; rot.height=w; } else { rot.width=w; rot.height=h; }
+  var rctx=rot.getContext('2d');
+  rctx.translate(rot.width/2,rot.height/2);
+  rctx.rotate(deg*Math.PI/180);
+  rctx.drawImage(img,-w/2,-h/2);
+  var scale=Math.min(3,2200/rot.width);
+  if(scale===1) return rot;
+  var cv=document.createElement('canvas');
+  cv.width=Math.round(rot.width*scale); cv.height=Math.round(rot.height*scale);
+  cv.getContext('2d').drawImage(rot,0,0,cv.width,cv.height);
+  return cv;
+}
 function runOcr(input){
   var f=input.files&&input.files[0]; if(!f) return;
   var status=document.getElementById('ocrStatus');
   status.textContent='กำลังอ่านบัตร… (ครั้งแรกอาจใช้เวลา 10–20 วินาที)';
   var img=new Image();
   img.onload=function(){
-    var scale=Math.min(3,2200/img.width);
-    var cv=document.createElement('canvas');
-    cv.width=Math.round(img.width*scale); cv.height=Math.round(img.height*scale);
-    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
     ocrLoadTesseract(function(){
       ocrGetWorker().then(function(worker){
-        return worker.recognize(cv,{logger:function(m){ if(m.status==='recognizing text') status.textContent='กำลังอ่านบัตร… '+Math.round(m.progress*100)+'%'; }});
-      }).then(function(res){
-        var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text), n=0;
-        if(nm.title){ document.getElementById('title').value=nm.title; document.getElementById('title').classList.add('ocr-hl'); n++; }
-        if(ocrFill('fullName',nm.fullName)) n++;
-        if(ocrFill('idCard',id)) n++;
-        onReqTypeChange();
-        status.textContent=n>0?('อ่านได้ '+n+' ช่อง — ตรวจให้ถูกก่อนกดบันทึกนะ'):('อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง');
-        input.value='';
+        var degs=[0,90,180,270], i=0;
+        function tryNext(){
+          if(i>=degs.length){ status.textContent='อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง'; input.value=''; return; }
+          var deg=degs[i++];
+          if(deg!==0) status.textContent='กำลังอ่านบัตร… (ลองหมุนภาพ)';
+          var cv=ocrPrepCanvas(img,deg);
+          worker.recognize(cv,{logger:function(m){ if(m.status==='recognizing text') status.textContent='กำลังอ่านบัตร… '+Math.round(m.progress*100)+'%'; }}).then(function(res){
+            var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text);
+            if(id||nm.fullName){
+              var n=0;
+              if(nm.title){ document.getElementById('title').value=nm.title; document.getElementById('title').classList.add('ocr-hl'); n++; }
+              if(ocrFill('fullName',nm.fullName)) n++;
+              if(ocrFill('idCard',id)) n++;
+              onReqTypeChange();
+              status.textContent=n>0?('อ่านได้ '+n+' ช่อง — ตรวจให้ถูกก่อนกดบันทึกนะ'):('อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง');
+              input.value='';
+            } else { tryNext(); }
+          }).catch(function(){ tryNext(); });
+        }
+        tryNext();
       }).catch(function(){ status.textContent='อ่านบัตรไม่สำเร็จ ลองถ่ายใหม่หรือกรอกเองได้เลย'; input.value=''; });
     },function(){ status.textContent='โหลด OCR ไม่ได้ (ตรวจเน็ต) กรอกเองได้เลย'; input.value=''; });
   };
