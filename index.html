@@ -278,16 +278,30 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v25): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ หามุมด้วยภาพย่อ 800px แล้วอ่านละเอียด 2200px ที่มุมที่ดีสุด + สถานะสดๆ กันค้าง ----
+// ---- สแกนบัตรประชาชน (v26): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ หามุมด้วยภาพย่อ 800px แล้วอ่านละเอียด 2200px ที่มุมที่ดีสุด + สถานะสดๆ กันค้าง + หาเลขบัตรด้วย checksum ไทย ----
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
 function ocrDeconfuse(s){ return (s||'').replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/S/g,'5'); }
+// เลขบัตรไทยมีเลขตรวจสอบตัวสุดท้าย: เอา checksum เป็นตัวตัดสิน ไม่เชื่อเลขที่ OCR อ่านมาเฉยๆ
+// (รหัสเลเซอร์ขอบบัตรก็เป็นตัวเลขยาวๆ ได้ ถ้าไม่มี checksum จะจับผิดตัว)
+function validThaiId(s){
+  if(!/^\d{13}$/.test(s)) return false;
+  var sum=0;
+  for(var i=0;i<12;i++) sum+= +s[i]*(13-i);
+  return (11-(sum%11))%10===+s[12];
+}
 function ocrExtractIdCard(text){
   var t=ocrDeconfuse(text||'');
-  var m=t.match(/\d[\d\s-]{11,20}\d/);
-  if(!m) return '';
-  var d=ocrCleanDigits(m[0]);
-  return d.length===13?d:'';
+  var cands=[], m;
+  // รูปแบบที่พิมพ์บนบัตร: 1 2345 67890 12 3 (เว้นวรรคเป็นกลุ่ม)
+  var re=/(\d)\s*(\d{4})\s*(\d{5})\s*(\d{2})\s*(\d)/g;
+  while((m=re.exec(t))!==null) cands.push(m.slice(1).join(''));
+  // เลขติดกัน 13 หลัก (OCR อาจอ่านเว้นวรรคหลุด)
+  var re2=/\d{13}/g;
+  while((m=re2.exec(t))!==null){ if(cands.indexOf(m[0])<0) cands.push(m[0]); }
+  // เลขที่ผ่าน checksum ก่อน — ถ้าไม่มีเลย ใช้ตัวแรกเป็นค่าให้ตรวจ (ไฮไลต์เหลืองไว้แล้ว)
+  for(var i=0;i<cands.length;i++){ if(validThaiId(cands[i])) return cands[i]; }
+  return cands.length?cands[0]:'';
 }
 function ocrExtractName(text){
   var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
@@ -380,7 +394,7 @@ function runOcr(input){
   img.onload=function(){
     ocrLoadTesseract(function(){
       ocrGetWorker().then(function(worker){
-        var degs=[0,90,180,270];
+        var degs=[0,90,180,270], fallbackId='';
         function ocrDone(nm,id){
           ocrStopClock();
           var n=0;
@@ -393,6 +407,7 @@ function runOcr(input){
         }
         function ocrFail(){
           ocrStopClock();
+          if(fallbackId){ ocrDone({title:'',fullName:''},fallbackId); return; }
           status.textContent='อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง';
           input.value='';
         }
@@ -408,7 +423,8 @@ function runOcr(input){
           ocrSetStep('กำลังหามุมภาพ… ('+deg+'°)');
           ocrRecognizeTimeout(worker,ocrPrepCanvas(img,deg,800),60000).then(function(res){
             var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text);
-            if(id||nm.fullName){ ocrDone(nm,id); return; }
+            if((id&&validThaiId(id))||nm.fullName){ ocrDone(nm,id); return; }
+            if(id&&!fallbackId) fallbackId=id;
             scores.push({deg:deg,thai:(res.data.text.match(/[ก-๙]/g)||[]).length});
             cheapNext(i+1);
           }).catch(function(){ scores.push({deg:deg,thai:0}); cheapNext(i+1); });
@@ -420,8 +436,8 @@ function runOcr(input){
           ocrSetStep('กำลังอ่านบัตรแบบละเอียด… (มุม '+deg+'°)');
           ocrRecognizeTimeout(worker,ocrPrepCanvas(img,deg,2200),120000).then(function(res){
             var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text);
-            if(id||nm.fullName){ ocrDone(nm,id); }
-            else { fullNext(k+1); }
+            if((id&&validThaiId(id))||nm.fullName){ ocrDone(nm,id); }
+            else { if(id&&!fallbackId) fallbackId=id; fullNext(k+1); }
           }).catch(function(){ fullNext(k+1); });
         }
         cheapNext(0);
