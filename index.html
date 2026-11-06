@@ -322,7 +322,7 @@ function ocrExtractName(text){
   for(var j=0;j<words.length;j++){ if(/^(นาย|นางสาว|นาง)$/.test(words[j])){ tIdx=j; break; } }
   if(tIdx>=0){ if(!title) title=words[tIdx]; words.splice(tIdx,1); }
   if(words.length>=2 && words[0].length>=2 && words[1].length>=2 && (words[0].length+words[1].length)>=8){
-   return {title:title,fullName:words.slice(0,2).join(' ');
+   return {title:title,fullName:words.slice(0,2).join(' ')};
   }
   break;
  }
@@ -331,13 +331,13 @@ function ocrExtractName(text){
   m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
   if(!m) continue;
   words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
-  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ');};
+  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};};
 }
  // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
  for(i=0;i<lines.length;i++){
   if(!/ชื่/.test(lines[i])) continue;
   words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return!/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
-  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ');};
+  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};};
  }
  return {title:title,fullName:''};
  }    
