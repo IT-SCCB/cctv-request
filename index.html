@@ -278,7 +278,7 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v30): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) ----
+// ---- สแกนบัตรประชาชน (v31): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) + ชื่อยึดบรรทัด ชื่อตัวและชื่อสกุล เป็นหลัก (วิธีเดิมสแกนหา นาย ทั่วภาพ ไปเจอ นาย หลงจากบรรทัดอื่นแล้วเอาคำผิดมาเป็นชื่อ) ----
 var OCR_BASE='ocr'; // ไฟล์ OCR โฮสต์เองที่เดียวกับหน้าเว็บ (GitHub Pages)
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
@@ -305,23 +305,44 @@ function ocrExtractIdCard(text){
   return cands.length?cands[0]:'';
 }
 function ocrExtractName(text){
-  var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
+ var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
   var lines=(text||'').split('\n'), i, m, words;
-  for(i=0;i<lines.length;i++){ 
-    m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
-    if(!m) continue;
-    words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
-    if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};
+ var titleFromEn={'Mr':'นาย','Mrs':'นาง','Miss':'นางสาว'}, title='';
+ for(i=0;i<lines.length;i++){ m=lines[i].match(/Name\s+(Mr|Mrs|Miss)\b/); if(m){title=titleFromEn[m[1]];break;} }
+ // หลัก (v31): ยึดบรรทัด "ชื่อตัวและชื่อสกุล" — ชื่อจริงอยู่บรรทัดนี้เสมอ
+ // วิธีเดิมสแกนหา นาย ทั่วทั้งภาพ ไปเจอ นาย หลงๆ จากบรรทัดอื่น (ที่อยู่/ด้านหลังบัตร) แล้วเอาคำผิดมาเป็นชื่อ
+ // ป้ายบรรทัดชื่อ OCR อ่านเพี้ยนได้ ("จื่อ..." แทน "ชื่อ...") เลยตัดด้วย "มี ชื่/ชื่อ/สกุล อยู่ในคำ" แทนขึ้นต้นด้วย
+ // และตัดคำที่มีตัวเลขออก (เลขบัตร/วันเกิดหลุดมาอยู่บรรทัดเดียวกันได้) แล้วเอาสองคำแรกที่เหลือเป็นชื่อ-นามสกุล
+ for(i=0;i<lines.length;i++){
+  if(!/ชื่/.test(lines[i])) continue;
+  words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){
+   return w.indexOf('ชื่')<0 && w.indexOf('ชื่อ')<0 && w.indexOf('สกุล')<0 && !/^(ตัว|และ)/.test(w) && !/[0-9๐-๙]/.test(w) && !stop.test(w);
+  });
+  var tIdx=-1;
+  for(var j=0;j<words.length;j++){ if(/^(นาย|นางสาว|นาง)$/.test(words[j])){ tIdx=j; break; } }
+  if(tIdx>=0){ if(!title) title=words[tIdx]; words.splice(tIdx,1); }
+  if(words.length>=2 && words[0].length>=2 && words[1].length>=2 && (words[0].length+words[1].length)>=8){
+   return {title:title,fullName:words.slice(0,2).join(' ');
   }
-  var titleFromEn={'Mr':'นาย','Mrs':'นาง','Miss':'นางสาว'}, title='';
-  for(i=0;i<lines.length;i++){ m=lines[i].match(/Name\s+(Mr|Mrs|Miss)\b/); if(m){title=titleFromEn[m[1]];break;} }
-  for(i=0;i<lines.length;i++){
-    if(!/ชื่/.test(lines[i])) continue;
-    words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return !/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
-    if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};
-  }
-  return {title:title,fullName:''};
+  break;
+ }
+ // สำรอง: วิธีเดิม — สแกนหา นาย/นาง/นางสาว ทั่วทั้งภาพ
+ for(i=0;i<lines.length;i++){
+  m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
+  if(!m) continue;
+  words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
+  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ');};
 }
+ // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
+ for(i=0;i<lines.length;i++){
+  if(!/ชื่/.test(lines[i])) continue;
+  words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return!/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
+  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ');};
+ }
+ return {title:title,fullName:''};
+ }
+  
+   
 function ocrLoadTesseract(cb,err){
   if(window.Tesseract){ cb(); return; }
   var s=document.createElement('script');
