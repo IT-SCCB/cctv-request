@@ -64,7 +64,7 @@
   #printSheet .ovl.chk{transform:translate(-50%,-50%);font-family:Tahoma,"Segoe UI Symbol",sans-serif;font-size:11pt;line-height:1}
   @media print{
     html,body{margin:0!important;padding:0!important;background:#fff}
-    body{background:#fff} header,nav,#viewForm,#viewList,#viewStaff,.noprint{display:none!important}
+    body{background:#fff} header,nav,#viewForm,#viewList,#viewStaff,#viewLogin,#viewSettings,.noprint{display:none!important}
     .wrap{display:block;margin:0!important;padding:0!important;max-width:none!important}
     #printSheet{display:block;position:relative;width:210mm;height:297mm;margin:0;color:#000;padding:0!important;box-shadow:none!important;border-radius:0!important;box-sizing:border-box}
     #printSheet .ovl-bg{position:absolute;left:0;top:0;width:210mm;height:297mm}
@@ -86,7 +86,9 @@
 <div class="wrap">
   <nav>
     <button id="tabForm" class="active" onclick="showView('form')">📝 กรอกคำร้องใหม่</button>
-    <button id="tabList" onclick="showView('list')">📋 รายการคำร้อง — ใครขอ เมื่อไหร่</button>
+    <button id="tabList" onclick="showView('list')" style="display:none">📋 รายการคำร้อง — ใครขอ เมื่อไหร่</button>
+    <button id="tabStaff" onclick="showStaffLogin()">🔐 เจ้าหน้าที่</button>
+    <span id="staffBar" style="display:none">👤 <b id="staffUserName"></b> <button class="btn secondary" style="margin:0" onclick="showSettings()">⚙️ ตั้งค่า</button> <button class="btn secondary" style="margin:0" onclick="staffLogout()">🚪 ออกจากระบบ</button></span>
   </nav>
 
   <!-- ===== ฟอร์มกรอก ===== -->
@@ -185,12 +187,37 @@
     </form>
   </div>
 
+  <!-- ===== เข้าสู่ระบบเจ้าหน้าที่ (หลังบ้าน) ===== -->
+  <div id="viewLogin" class="card" style="display:none;max-width:520px;margin:0 auto">
+    <h2>🔐 เข้าสู่ระบบเจ้าหน้าที่</h2>
+    <p class="muted">กรอกข้อมูลเข้าสู่ระบบเพื่อดำเนินการคำร้อง เปลี่ยนสถานะ และกรอกส่วนเจ้าหน้าที่ — หน้าแบบคำร้องไม่ต้องล็อกอิน</p>
+    <div id="loginMsg"></div>
+    <label>ชื่อผู้ใช้</label><input id="loginUser" placeholder="เช่น Admin" autocomplete="username">
+    <label>รหัสผ่าน</label><input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffDoLogin()">
+    <button class="btn" style="margin-top:12px" onclick="staffDoLogin()">เข้าสู่ระบบ →</button>
+    <button class="btn secondary" onclick="showView('form')">← กลับไปกรอกคำร้อง</button>
+    <p class="muted">หากลืมรหัสผ่าน ติดต่อผู้ดูแลระบบเพื่อรีเซ็ต</p>
+  </div>
+
+  <!-- ===== ตั้งค่าบัญชีเจ้าหน้าที่ ===== -->
+  <div id="viewSettings" class="card" style="display:none;max-width:520px;margin:0 auto">
+    <h2>⚙️ ตั้งค่าบัญชีเจ้าหน้าที่</h2>
+    <p class="muted">เปลี่ยนชื่อผู้ใช้และรหัสผ่านสำหรับเข้าหลังบ้าน — หลังบันทึกจะต้องเข้าสู่ระบบใหม่ด้วยข้อมูลใหม่</p>
+    <div id="settingsMsg"></div>
+    <label>รหัสผ่านปัจจุบัน</label><input id="setCurrentPass" type="password" autocomplete="current-password">
+    <label>ชื่อผู้ใช้ใหม่</label><input id="setNewUser" placeholder="เช่น Admin">
+    <label>รหัสผ่านใหม่</label><input id="setNewPass" type="password" autocomplete="new-password">
+    <label>ยืนยันรหัสผ่านใหม่</label><input id="setNewPass2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')staffSaveSettings()">
+    <button class="btn" style="margin-top:12px" onclick="staffSaveSettings()">💾 บันทึกการเปลี่ยนแปลง</button>
+    <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
+  </div>
+
   <!-- ===== หน้ารายการเดียวสำหรับปริ้น ===== -->
   <div id="printSheet"></div>
   <div class="noprint" style="margin-top:14px;display:none" id="printActions">
     <button class="btn" onclick="window.print()">🖨️ ปริ้นฟอร์มนี้</button>
     <button class="btn" onclick="window.print()">💾 เซฟเป็นไฟล์ PDF</button>
-    <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
+    <button class="btn secondary" onclick="backFromPrint()">← กลับไปรายการ</button>
     <p class="muted" style="margin:8px 0 0">กดปุ่มเซฟแล้วเลือกปลายทาง “Save as PDF” ในหน้าต่างที่เปิดขึ้นมา</p>
   </div>
   <div id="saveModal" class="modal noprint" style="display:none">
@@ -232,11 +259,81 @@ document.getElementById('todayBE').textContent = beText(todayISO());
 document.getElementById('footageDate').value = todayISO();
 onReqTypeChange();
 
+// ---- หลังบ้าน: ล็อกอินเจ้าหน้าที่ (v32) ----
+// หน้าบ้าน (กรอกคำร้อง) ไม่ต้องล็อกอิน; รายการ/เปลี่ยนสถานะ/ส่วนเจ้าหน้าที่/ดู-ปริ้น ต้องล็อกอิน
+// token เก็บใน sessionStorage (ปิดแท็บแล้วหาย อายุ 8 ชม. ที่หลังบ้าน); ผู้ยื่นปริ้นใบที่เพิ่งยื่น
+// ได้ด้วย printToken อายุ 15 นาทีที่มากับผลบันทึก (ไม่ต้องล็อกอิน)
+var staffToken = sessionStorage.getItem('cctv_staff_token') || '';
+var staffUser = sessionStorage.getItem('cctv_staff_user') || '';
+var printToken = '';
+function updateStaffUI(){
+  var logged = !!staffToken;
+  document.getElementById('tabList').style.display = logged?'':'none';
+  document.getElementById('tabStaff').style.display = logged?'none':'';
+  document.getElementById('staffBar').style.display = logged?'':'none';
+  if(logged) document.getElementById('staffUserName').textContent = staffUser;
+}
+function showStaffLogin(){
+  var m=document.getElementById('loginMsg'); m.textContent=''; m.className='';
+  showView('login');
+}
+function staffDoLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value;
+  var m=document.getElementById('loginMsg');
+  if(!u||!p){ m.className='err'; m.textContent='กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'; return; }
+  server('staffLogin',{staffUser:u,staffPass:p},function(res){
+    staffToken=res.token; staffUser=res.user;
+    sessionStorage.setItem('cctv_staff_token',staffToken);
+    sessionStorage.setItem('cctv_staff_user',staffUser);
+    document.getElementById('loginPass').value='';
+    updateStaffUI(); showView('list');
+  },function(msg){ m.className='err'; m.textContent=msg; });
+}
+function staffLogout(){
+  if(staffToken) server('staffLogout',{token:staffToken},function(){},function(){});
+  staffToken=''; staffUser='';
+  sessionStorage.removeItem('cctv_staff_token'); sessionStorage.removeItem('cctv_staff_user');
+  updateStaffUI(); showView('form');
+}
+function staffSessionExpired(){
+  staffToken=''; staffUser='';
+  sessionStorage.removeItem('cctv_staff_token'); sessionStorage.removeItem('cctv_staff_user');
+  updateStaffUI();
+  var m=document.getElementById('loginMsg'); m.className='err'; m.textContent='เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่';
+  showView('login');
+}
+function showSettings(){
+  var m=document.getElementById('settingsMsg'); m.textContent=''; m.className='';
+  showView('settings');
+}
+function staffSaveSettings(){
+  var cur=document.getElementById('setCurrentPass').value;
+  var nu=document.getElementById('setNewUser').value.trim();
+  var np=document.getElementById('setNewPass').value;
+  var np2=document.getElementById('setNewPass2').value;
+  var m=document.getElementById('settingsMsg');
+  if(!cur||!nu||!np||!np2){ m.className='err'; m.textContent='กรุณากรอกให้ครบทุกช่อง'; return; }
+  if(np!==np2){ m.className='err'; m.textContent='รหัสผ่านใหม่สองช่องไม่ตรงกัน'; return; }
+  if(np.length<4){ m.className='err'; m.textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'; return; }
+  server('staffChangeCredentials',{token:staffToken,currentPass:cur,newUser:nu,newPass:np},function(){
+    staffLogout();
+    var lm=document.getElementById('loginMsg'); lm.className='ok'; lm.textContent='เปลี่ยนข้อมูลแล้ว กรุณาเข้าสู่ระบบใหม่ด้วยข้อมูลใหม่';
+    showView('login');
+  },function(msg){ m.className='err'; m.textContent=msg; });
+}
+function backFromPrint(){ showView(staffToken?'list':'form'); }
+updateStaffUI();
+
 function showView(v){
+  // รายการและตั้งค่าเป็นของหลังบ้าน ต้องล็อกอินก่อน
+  if((v==='list'||v==='settings'||v==='staff') && !staffToken){ showView('login'); return; }
   document.querySelector('.wrap').classList.toggle('wide', v==='list');
   document.getElementById('viewForm').style.display = v==='form'?'block':'none';
   document.getElementById('viewList').style.display = v==='list'?'block':'none';
   document.getElementById('viewStaff').style.display = v==='staff'?'block':'none';
+  document.getElementById('viewLogin').style.display = v==='login'?'block':'none';
+  document.getElementById('viewSettings').style.display = v==='settings'?'block':'none';
   document.getElementById('printActions').style.display = 'none';
   document.getElementById('printSheet').innerHTML='';
   document.getElementById('tabForm').className = v==='form'?'active':'';
@@ -245,6 +342,11 @@ function showView(v){
 }
 // ---- ชั้นข้อมูล: ต่อ Apps Script ได้, ไม่มีก็ใช้ localStorage ทดลอง ----
 function server(fn,arg,ok,err){
+  // ทุกคำสั่งหลังบ้านแนบ token เจ้าหน้าที่อัตโนมัติ (ยกเว้นยื่นคำร้องกับล็อกอิน)
+  if(fn!=='saveRequest' && fn!=='staffLogin'){
+    if(typeof arg==='string') arg={id:arg,token:staffToken};
+    else { arg=arg||{}; if(staffToken) arg.token=staffToken; }
+  }
   if(API_URL){
     var q = new URLSearchParams({action:fn});
     if(typeof arg==='string'){ q.set('id', arg); }
@@ -257,6 +359,7 @@ function server(fn,arg,ok,err){
     }); }
     fetch(API_URL+'?'+q.toString()).then(function(res){ return res.json(); }).then(function(out){
       if(out && out.ok) ok(out.data);
+      else if(out && out.error==='unauthorized'){ staffSessionExpired(); (err||function(){})(out.error); }
       else (err||function(m){alert(m);})(out && out.error || 'เรียก API ไม่สำเร็จ');
     }).catch(function(e){ (err||function(m){alert(m);})(e.message||e); });
   } else { try{ ok(demo(fn,arg)); }catch(e){ (err||alert)(e.message||e); } }
@@ -268,8 +371,11 @@ function demo(fn,arg){
     arg.requestDate=todayISO(); arg.status='รอตรวจสอบ';
     arg.createdAt=new Date().toLocaleString('th-TH'); list.push(arg); localStorage.setItem(key,JSON.stringify(list)); return {id:arg.id};
   }
+  if(fn==='staffLogin'){ var c=JSON.parse(localStorage.getItem('cctv_staff_demo')||'{"user":"Admin","pass":"1234"}'); if(arg.staffUser===c.user && arg.staffPass===c.pass) return {token:'demo',user:c.user}; throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); }
+  if(fn==='staffLogout'){ return true; }
+  if(fn==='staffChangeCredentials'){ var c2=JSON.parse(localStorage.getItem('cctv_staff_demo')||'{"user":"Admin","pass":"1234"}'); if(arg.currentPass!==c2.pass) throw new Error('รหัสผ่านปัจจุบันไม่ถูกต้อง'); if(!arg.newUser) throw new Error('กรุณากรอกชื่อผู้ใช้ใหม่'); if(String(arg.newPass||'').length<4) throw new Error('รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'); localStorage.setItem('cctv_staff_demo',JSON.stringify({user:arg.newUser,pass:arg.newPass})); return true; }
   if(fn==='listRequests'){ return list.slice().reverse().map(function(r){ var c=Object.assign({},r); c.idCardMasked=(r.idCard||'').charAt(0)+'XXXXXXXXX'+(r.idCard||'').slice(-2); delete c.idCard; c.staffDone=!!(r.staffReceivedDate||r.staffProcessedDate||r.staffOperatorName||r.checkerName||r.approverName); return c; }); }
-  if(fn==='getRequest'){ var f=list.filter(function(r){return r.id===arg;}); if(!f.length) throw new Error('ไม่พบคำร้อง'); return f[0]; }
+  if(fn==='getRequest'){ var gid=(typeof arg==='string')?arg:arg.id; var f=list.filter(function(r){return r.id===gid;}); if(!f.length) throw new Error('ไม่พบคำร้อง'); return f[0]; }
   if(fn==='updateStatus'){ list.forEach(function(r){ if(r.id===arg.id) r.status=arg.status; }); localStorage.setItem(key,JSON.stringify(list)); return true; }
   if(fn==='updateStaff'){ list.forEach(function(r){ if(r.id===arg.id) Object.assign(r,arg.staff); }); localStorage.setItem(key,JSON.stringify(list)); return true; }
 }
@@ -278,7 +384,7 @@ function onReqTypeChange(){
   var ext = reqType()==='ภายนอก';
   document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
 }
-// ---- สแกนบัตรประชาชน (v31): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) + ชื่อยึดบรรทัด ชื่อตัวและชื่อสกุล เป็นหลัก (วิธีเดิมสแกนหา นาย ทั่วภาพ ไปเจอ นาย หลงจากบรรทัดอื่นแล้วเอาคำผิดมาเป็นชื่อ) ----
+// ---- สแกนบัตรประชาชน (v32): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) + ชื่อยึดบรรทัด ชื่อตัวและชื่อสกุล เป็นหลัก (วิธีเดิมสแกนหา นาย ทั่วภาพ ไปเจอ นาย หลงจากบรรทัดอื่นแล้วเอาคำผิดมาเป็นชื่อ) ----
 var OCR_BASE='ocr'; // ไฟล์ OCR โฮสต์เองที่เดียวกับหน้าเว็บ (GitHub Pages)
 // กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
 function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
@@ -305,42 +411,42 @@ function ocrExtractIdCard(text){
   return cands.length?cands[0]:'';
 }
 function ocrExtractName(text){
- var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
+  var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
   var lines=(text||'').split('\n'), i, m, words;
- var titleFromEn={'Mr':'นาย','Mrs':'นาง','Miss':'นางสาว'}, title='';
- for(i=0;i<lines.length;i++){ m=lines[i].match(/Name\s+(Mr|Mrs|Miss)\b/); if(m){title=titleFromEn[m[1]];break;} }
- // หลัก (v31): ยึดบรรทัด "ชื่อตัวและชื่อสกุล" — ชื่อจริงอยู่บรรทัดนี้เสมอ
- // วิธีเดิมสแกนหา นาย ทั่วทั้งภาพ ไปเจอ นาย หลงๆ จากบรรทัดอื่น (ที่อยู่/ด้านหลังบัตร) แล้วเอาคำผิดมาเป็นชื่อ
- // ป้ายบรรทัดชื่อ OCR อ่านเพี้ยนได้ ("จื่อ..." แทน "ชื่อ...") เลยตัดด้วย "มี ชื่/ชื่อ/สกุล อยู่ในคำ" แทนขึ้นต้นด้วย
- // และตัดคำที่มีตัวเลขออก (เลขบัตร/วันเกิดหลุดมาอยู่บรรทัดเดียวกันได้) แล้วเอาสองคำแรกที่เหลือเป็นชื่อ-นามสกุล
- for(i=0;i<lines.length;i++){
-  if(!/ชื่/.test(lines[i])) continue;
-  words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){
-   return w.indexOf('ชื่')<0 && w.indexOf('ชื่อ')<0 && w.indexOf('สกุล')<0 && !/^(ตัว|และ)/.test(w) && !/[0-9๐-๙]/.test(w) && !stop.test(w);
-  });
-  var tIdx=-1;
-  for(var j=0;j<words.length;j++){ if(/^(นาย|นางสาว|นาง)$/.test(words[j])){ tIdx=j; break; } }
-  if(tIdx>=0){ if(!title) title=words[tIdx]; words.splice(tIdx,1); }
-  if(words.length>=2 && words[0].length>=2 && words[1].length>=2 && (words[0].length+words[1].length)>=8){
-   return {title:title,fullName:words.slice(0,2).join(' ')};
+  var titleFromEn={'Mr':'นาย','Mrs':'นาง','Miss':'นางสาว'}, title='';
+  for(i=0;i<lines.length;i++){ m=lines[i].match(/Name\s+(Mr|Mrs|Miss)\b/); if(m){title=titleFromEn[m[1]];break;} }
+  // หลัก (v32): ยึดบรรทัด "ชื่อตัวและชื่อสกุล" — ชื่อจริงอยู่บรรทัดนี้เสมอ
+  // วิธีเดิมสแกนหา นาย ทั่วทั้งภาพ ไปเจอ นาย หลงๆ จากบรรทัดอื่น (ที่อยู่/ด้านหลังบัตร) แล้วเอาคำผิดมาเป็นชื่อ
+  // ป้ายบรรทัดชื่อ OCR อ่านเพี้ยนได้ ("จื่อ..." แทน "ชื่อ...") เลยตัดด้วย "มี ชื่/ชื่อ/สกุล อยู่ในคำ" แทนขึ้นต้นด้วย
+  // และตัดคำที่มีตัวเลขออก (เลขบัตร/วันเกิดหลุดมาอยู่บรรทัดเดียวกันได้) แล้วเอาสองคำแรกที่เหลือเป็นชื่อ-นามสกุล
+  for(i=0;i<lines.length;i++){
+    if(!/ชื่/.test(lines[i])) continue;
+    words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){
+      return w.indexOf('ชื่')<0 && w.indexOf('ชื่อ')<0 && w.indexOf('สกุล')<0 && !/^(ตัว|และ)/.test(w) && !/[0-9๐-๙]/.test(w) && !stop.test(w);
+    });
+    var tIdx=-1;
+    for(var j=0;j<words.length;j++){ if(/^(นาย|นางสาว|นาง)$/.test(words[j])){ tIdx=j; break; } }
+    if(tIdx>=0){ if(!title) title=words[tIdx]; words.splice(tIdx,1); }
+    if(words.length>=2 && words[0].length>=2 && words[1].length>=2 && (words[0].length+words[1].length)>=8){
+      return {title:title,fullName:words.slice(0,2).join(' ')};
+    }
+    break;
   }
-  break;
- }
- // สำรอง: วิธีเดิม — สแกนหา นาย/นาง/นางสาว ทั่วทั้งภาพ
- for(i=0;i<lines.length;i++){
-  m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
-  if(!m) continue;
-  words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
-  if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};
+  // สำรอง: วิธีเดิม — สแกนหา นาย/นาง/นางสาว ทั่วทั้งภาพ
+  for(i=0;i<lines.length;i++){
+    m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
+    if(!m) continue;
+    words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
+    if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};
+  }
+  // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
+  for(i=0;i<lines.length;i++){
+    if(!/ชื่/.test(lines[i])) continue;
+    words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return !/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
+    if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};
+  }
+  return {title:title,fullName:''};
 }
- // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
- for(i=0;i<lines.length;i++){
-  if(!/ชื่/.test(lines[i])) continue;
-  words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return!/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
-  if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};
- }
- return {title:title,fullName:''};
- }    
 function ocrLoadTesseract(cb,err){
   if(window.Tesseract){ cb(); return; }
   var s=document.createElement('script');
@@ -541,6 +647,7 @@ function submitForm(e){
     showMsg('formMsg','บันทึกแล้ว เลขที่คำร้อง: <b>'+res.id+'</b> — กด “รายการคำร้อง” เพื่อดูและปริ้น','ok');
     document.getElementById('reqForm').reset(); document.getElementById('footageDate').value=todayISO(); onReqTypeChange();
     currentReqId=res.id;
+    printToken=res.printToken||'';
     openPrint(res.id,function(){ showSaveModal(res.id); });
   });
   return false;
@@ -595,7 +702,7 @@ function saveStaff(e){
   return false;
 }
 function openPrint(id,cb){
-  server('getRequest',id,function(r){
+  server('getRequest',{id:id,printToken:printToken},function(r){
     currentReq=r; showView('form'); // ซ่อนฟอร์มชั่วคราว แล้วแสดงเฉพาะหน้าปริ้น
     document.getElementById('viewForm').style.display='none';
     document.getElementById('printActions').style.display='block';
