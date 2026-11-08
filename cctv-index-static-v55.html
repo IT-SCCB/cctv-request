@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>คำร้องขอดูภาพ CCTV | CCTV Request Form</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:Prompt,'Segoe UI',Tahoma,sans-serif;background:#f3f4f6;color:#1f2937}
+  header{background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header b{color:#1e3a8a;font-size:20px} header span{color:#6b7280;font-size:13px}
+  .pill{border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;border-radius:999px;padding:4px 12px;font-size:13px}
+  .wrap{max-width:980px;margin:20px auto;padding:0 14px 40px}
+  .wrap.wide{max-width:1280px}
+  nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  nav button{border:1px solid #c7d2fe;background:#fff;color:#4338ca;border-radius:999px;padding:9px 18px;cursor:pointer;font-size:15px}
+  nav button.active,nav button:hover{background:#4f46e5;color:#fff}
+  .card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:22px}
+  h2{margin:0 0 6px;color:#1e3a8a} h3{margin:22px 0 10px;color:#312e81;border-left:4px solid #4f46e5;padding-left:10px}
+  .muted{color:#6b7280;font-size:14px} label{display:block;font-size:14px;margin:12px 0 4px;font-weight:600}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;background:#f9fafb}
+  input:focus,select:focus,textarea:focus{outline:2px solid #a5b4fc;background:#fff}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px} @media(max-width:640px){.row{grid-template-columns:1fr}}
+  .check{display:flex;gap:8px;align-items:flex-start;margin:7px 0;font-weight:400} .check input{width:auto;margin-top:3px}
+  .btn{background:#4f46e5;color:#fff;border:0;border-radius:10px;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+  .btn.secondary{background:#fff;color:#4338ca;border:1px solid #c7d2fe} .btn.danger{background:#dc2626} label.btn{display:inline-block} .ocr-file-input{position:absolute!important;width:1px;height:1px;opacity:0;overflow:hidden}
+  .ok{background:#dcfce7;color:#166534;padding:12px;border-radius:10px;margin:12px 0}
+  .err{background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px;margin:12px 0}
+  .req{color:#dc2626;font-weight:700}
+  .ocr-hl{background:#fef9c3!important}
+  table{width:100%;border-collapse:collapse;font-size:14px} th,td{border-bottom:1px solid #e5e7eb;padding:9px 7px;text-align:left;vertical-align:top}
+  th{color:#4338ca;white-space:nowrap} .st{white-space:nowrap;font-weight:700;min-width:150px;font-size:13px}
+  .search{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0} .search input,.search select{flex:1;min-width:160px}
+  .printbtn{white-space:nowrap}
+  #listBox,#plistBox{overflow-x:auto}
+  #listBox table,#plistBox table{font-size:13px}
+  #listBox th,#listBox td,#plistBox th,#plistBox td{white-space:nowrap;padding:8px 7px}
+  @media(max-width:640px){
+    #listBox table tr:first-child,#plistBox table tr:first-child{display:none}
+    #listBox table,#listBox tbody,#listBox tr,#listBox td,#plistBox table,#plistBox tbody,#plistBox tr,#plistBox td{display:block;width:auto}
+    #listBox tr,#plistBox tr{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:6px 12px;margin-bottom:12px}
+    #listBox td,#plistBox td{display:flex;justify-content:space-between;align-items:center;gap:10px;white-space:normal;border-bottom:1px solid #f3f4f6;padding:9px 2px}
+    #listBox td::before,#plistBox td::before{content:attr(data-label);font-weight:700;color:#4338ca;flex-shrink:0}
+    #listBox td:last-child,#plistBox td:last-child{display:flex;gap:8px;border-bottom:0;padding:12px 2px 6px}
+    #listBox td:last-child::before,#plistBox td:last-child::before{display:none}
+    #listBox td:last-child .printbtn,#plistBox td:last-child .printbtn{flex:1}
+    #listBox td select,#plistBox td select{flex:1;min-width:0}
+  }
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal-box{background:#fff;border-radius:16px;padding:26px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .modal-box h2{margin:0 0 8px;color:#166534}
+  .modal-box .btn{margin:8px 4px 0}
+  /* ---- หน้าปริ้น v12: พื้นหลัง PDF ต้นฉบับ + วางตัวหนังสือทับ ---- */
+  /* ภาพพื้นหลัง = หน้า PDF ต้นฉบับ IT CCTV R4 เรนเดอร์ 200dpi (1654x2339)
+     พิกัดทุกช่องวัดจาก PDF ต้นฉบับระดับตัวอักษร (ไฟล์ cctv-overlay-coords.json)
+     หน่วย mm, กระดาษ A4 210x297, @page margin 0 -> ภาพตรง 1:1 กับต้นฉบับ
+     ตัวหนังสือ Angsana New 14pt (เนื้อความ) / 12pt (ตารางเจ้าหน้าที่) */
+  #printSheet{position:relative;width:210mm;height:297mm;margin:0 auto;background:#fff;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  #printSheet:empty{display:none}
+  #printSheet .ovl-bg{position:absolute;left:0;top:0;width:210mm;height:297mm}
+  #printSheet .ovl{position:absolute;transform:translateX(-50%);font-family:"Angsana New","TH Sarabun New",Tahoma,serif;font-size:14pt;line-height:1.15;text-align:center;color:#000;white-space:nowrap}
+  #printSheet .ovl.sm{font-size:12pt}
+  #printSheet .ovl.box{transform:none;text-align:center;white-space:normal;font-size:12pt;line-height:5.7mm}
+  #printSheet .ovl.left{transform:none;text-align:left;white-space:normal;line-height:6.7mm}
+  #printSheet .ovl.chk{transform:translate(-50%,-50%);font-family:Tahoma,"Segoe UI Symbol",sans-serif;font-size:11pt;line-height:1}
+  #printSheet .ovl.circle{transform:translate(-50%,-50%);border:1.2pt solid #000;border-radius:50%;background:transparent}
+  @media print{
+    html,body{margin:0!important;padding:0!important;background:#fff}
+    body{background:#fff} header,nav,#viewForm,#viewList,#viewPublic,#viewStaff,#viewLogin,#viewSettings,#viewUsers,#viewBackup,.noprint{display:none!important}
+    .wrap{display:block;margin:0!important;padding:0!important;max-width:none!important}
+    #printSheet{display:block;position:relative;width:210mm;height:297mm;margin:0;color:#000;padding:0!important;box-shadow:none!important;border-radius:0!important;box-sizing:border-box}
+    #printSheet .ovl-bg{position:absolute;left:0;top:0;width:210mm;height:297mm}
+    #printSheet .ovl{position:absolute;transform:translateX(-50%);font-family:"Angsana New","TH Sarabun New",Tahoma,serif;font-size:14pt;line-height:1.15;text-align:center;color:#000;white-space:nowrap}
+    #printSheet .ovl.sm{font-size:12pt}
+    #printSheet .ovl.box{transform:none;text-align:center;white-space:normal;font-size:12pt;line-height:5.7mm}
+    #printSheet .ovl.left{transform:none;text-align:left;white-space:normal;line-height:6.7mm}
+    #printSheet .ovl.chk{transform:translate(-50%,-50%);font-family:Tahoma,"Segoe UI Symbol",sans-serif;font-size:11pt;line-height:1}
+    html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:0}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div><b>ระบบคำร้องขอดูภาพ CCTV · CCTV Request Form</b><br><span>แผนกเทคโนโลยีสารสนเทศ — กรอกจริง บันทึก และปริ้นได้</span></div>
+  <span class="pill" id="modePill">● พร้อมใช้งาน</span>
+</header>
+<div class="wrap">
+  <nav>
+    <button id="tabForm" class="active" onclick="showView('form')">📝 กรอกคำร้องใหม่</button>
+    <button id="tabList" onclick="showView('list')" style="display:none">📋 รายการคำร้อง — ใครขอ เมื่อไหร่</button>
+    <button id="tabPublic" onclick="showView('public')">📋 ดูรายการย้อนหลัง</button>
+    <button id="tabStaff" onclick="showStaffLogin()">🔐 เจ้าหน้าที่</button>
+    <button id="tabBackup" onclick="showView('backup')" style="display:none">💾 สำรองข้อมูล</button>
+    <button id="tabDashboard" onclick="showView('dashboard')" style="display:none">📊 แดชบอร์ด</button>
+    <span id="staffBar" style="display:none">👤 <b id="staffUserName"></b> <button class="btn secondary" style="margin:0" onclick="showSettings()">⚙️ ตั้งค่า</button> <button class="btn secondary" style="margin:0" onclick="showUsers()">👥 ผู้ใช้</button> <button class="btn secondary" style="margin:0" onclick="staffLogout()">🚪 ออกจากระบบ</button></span>
+  </nav>
+
+  <!-- ===== ฟอร์มกรอก ===== -->
+  <div id="viewForm" class="card">
+    <h2>แบบคำร้องขอดูภาพจากกล้องวงจรปิด (CCTV)</h2>
+    <p class="muted">วันที่ยื่นคำร้อง: <b id="todayBE"></b> · ช่องที่มี * จำเป็นต้องกรอก · เลขบัตรประชาชนจะไม่แสดงในหน้ารายการ</p>
+    <div id="formMsg"></div>
+    <form id="reqForm" onsubmit="return submitForm(event)">
+      <h3>1. ข้อมูลผู้ขอ</h3>
+      <label>ประเภทผู้ขอ <span class="req">*</span></label>
+      <div style="display:flex;gap:22px;flex-wrap:wrap">
+        <label class="check"><input type="radio" name="reqType" value="ภายใน" checked onchange="onReqTypeChange()"> ภายใน (พนักงาน)</label>
+        <label class="check"><input type="radio" name="reqType" value="ภายนอก" onchange="onReqTypeChange()"> ภายนอก (บุคคลภายนอก)</label>
+      </div>
+      <div style="margin:12px 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label class="btn secondary" style="margin:0" for="ocrFileCamera">📷 ถ่ายรูปบัตร</label>
+        <label class="btn secondary" style="margin:0" for="ocrFileUpload">🖼️ เลือกรูปจากเครื่อง</label>
+        <span class="muted" id="ocrStatus">รูปไม่ถูกส่งขึ้นเซิร์ฟเวอร์ อ่านบนเครื่องนี้เท่านั้น</span>
+      </div>
+      <input type="file" id="ocrFileCamera" accept="image/*" capture="environment" class="ocr-file-input" onchange="runOcr(this)">
+      <input type="file" id="ocrFileUpload" accept="image/*" class="ocr-file-input" onchange="runOcr(this)">
+      <div class="row">
+        <div><label>คำนำหน้า</label>
+          <select id="title"><option>นาย</option><option>นาง</option><option>นางสาว</option></select></div>
+        <div><label>ชื่อ-นามสกุล <span class="req">*</span></label><input id="fullName" required placeholder="เช่น สมชาย ใจดี"></div>
+      </div>
+      <div class="row">
+        <div><label>บัตรประชาชนเลขที่ <span id="idCardHint"><span class="req">*</span> (13 หลัก)</span></label><input id="idCard" inputmode="numeric" placeholder="13 หลัก ไม่ต้องใส่ขีด"></div>
+        <div><label>หมายเลขโทรศัพท์ <span class="req">*</span></label><input id="phone" required placeholder="เช่น 0812345678"></div>
+      </div>
+      <label>แผนก <span class="req">*</span></label><input id="department" required placeholder="เช่น บัญชีและการเงิน">
+
+      <h3>2. ภาพที่ขอดู</h3>
+      <div class="row">
+        <div><label>พื้นที่ <span class="req">*</span></label><input id="area" required placeholder="เช่น อาคารสำนักงาน / สนามกอล์ฟ"></div>
+        <div><label>บริเวณ <span class="req">*</span></label><input id="location" required placeholder="เช่น ลานจอดรถหน้าอาคาร"></div>
+      </div>
+      <div class="row">
+        <div><label>วันที่ของภาพที่ขอดู <span class="req">*</span></label><input type="date" id="footageDate" required></div>
+        <div><label>ช่วงเวลาที่ขอดู <span class="req">*</span></label>
+          <div class="row"><input type="time" id="timeFrom" value="09:00" required><input type="time" id="timeTo" value="13:00" required></div>
+          <span class="muted">จากเวลา ถึงเวลา</span></div>
+      </div>
+
+      <h3>3. เหตุผลและเอกสารแนบ</h3>
+      <label>เนื่องจาก / ตามที่มีเหตุ <span class="req">*</span></label><textarea id="reason" rows="3" required placeholder="เล่าเหตุการณ์สั้นๆ ว่าขอดูภาพเพราะอะไร"></textarea>
+      <label>เอกสารแนบ (เลือกได้หลายข้อ)</label>
+      <label class="check"><input type="checkbox" class="att" value="สำเนาบัตรประจำตัวประชาชน"> สำเนาบัตรประจำตัวประชาชน</label>
+      <label class="check"><input type="checkbox" class="att" value="หมายศาล"> หมายศาล</label>
+      <label class="check"><input type="checkbox" class="att" value="หนังสือที่ออกจากหน่วยงานราชการ"> หนังสือที่ออกจากหน่วยงานราชการ</label>
+      <label class="check"><input type="checkbox" class="att" value="รายงานประจำวันแจ้งเป็นหลักฐาน"> รายงานประจำวันแจ้งเป็นหลักฐาน</label>
+      <label class="check"><input type="checkbox" class="att" value="อื่นๆ"> อื่นๆ โปรดระบุ <input id="otherAttachment" placeholder="ระบุเอกสารอื่น"></label>
+
+      <h3>4. ยืนยัน</h3>
+      <label class="check"><input type="checkbox" id="confirm" required> ข้าพเจ้ายืนยันว่า จะไม่นำข้อมูลที่ได้รับไปเผยแพร่หรือแสวงหาประโยชน์ในทางที่ไม่ชอบด้วยกฎหมาย และยินยอมรับผิดชอบความเสียหายที่เกิดขึ้นในทุกกรณี</label>
+      <button class="btn" type="submit">💾 บันทึกคำร้อง</button>
+      <button class="btn secondary" type="reset">ล้างฟอร์ม</button>
+    </form>
+  </div>
+
+  <!-- ===== รายการ: ใครขอ เมื่อไหร่ ===== -->
+  <div id="viewList" class="card" style="display:none">
+    <h2>รายการคำร้อง</h2>
+    <p class="muted">รู้ได้ทันทีว่าใครขอดูภาพ วันไหน เวลาไหน — ค้นด้วยชื่อ แผนก หรือพื้นที่ได้ (รายการไม่แสดงเลขบัตรประชาชน)</p>
+    <div class="search">
+      <input id="q" placeholder="🔍 ค้นชื่อ / แผนก / พื้นที่" oninput="renderList()">
+      <select id="statusFilter" onchange="renderList()">
+        <option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>กำลังดำเนินการ</option><option>อนุมัติ</option><option>ปฏิเสธ</option>
+      </select>
+      <button class="btn secondary" style="margin:0" onclick="loadList()">↻ โหลดใหม่</button>
+    </div>
+    <div id="listBox" class="muted">กำลังโหลด…</div>
+  </div>
+
+  <!-- ===== ดูรายการย้อนหลัง (อ่านอย่างเดียว) ===== -->
+  <div id="viewPublic" class="card" style="display:none">
+    <h2>รายการคำร้องย้อนหลัง</h2>
+    <p class="muted">ดูได้อย่างเดียว — ค้นด้วยชื่อ แผนก หรือพื้นที่ได้ กด “ดู / ปริ้น” เพื่อปริ้นหรือเซฟเป็น PDF (เปลี่ยนสถานะต้องเข้าหลังบ้าน ปุ่ม 🔐 เจ้าหน้าที่)</p>
+    <div class="search">
+      <input id="pq" placeholder="🔍 ค้นชื่อ / แผนก / พื้นที่" oninput="renderPublicList()">
+      <select id="pstatusFilter" onchange="renderPublicList()">
+        <option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>กำลังดำเนินการ</option><option>อนุมัติ</option><option>ปฏิเสธ</option>
+      </select>
+      <button class="btn secondary" style="margin:0" onclick="loadPublicList()">↻ โหลดใหม่</button>
+    </div>
+    <div id="plistBox" class="muted">กำลังโหลด…</div>
+  </div>
+
+  <!-- ===== จัดการผู้ใช้เจ้าหน้าที่ ===== -->
+  <div id="viewUsers" class="card" style="display:none">
+    <h2>ผู้ใช้เจ้าหน้าที่</h2>
+    <p class="muted">เพิ่มผู้ใช้ใหม่สำหรับเจ้าหน้าที่คนอื่นได้ ลบผู้ใช้เก่าออกได้ (ลบตัวเองกับลบคนสุดท้ายไม่ได้) — ทุกคนล็อกอินด้วยชื่อผู้ใช้+รหัสผ่านของตัวเอง</p>
+    <div id="usersBox" class="muted">กำลังโหลด…</div>
+    <h3 style="margin-top:18px">➕ เพิ่มผู้ใช้ใหม่</h3>
+    <div class="search">
+      <input id="newStaffUser" placeholder="ชื่อผู้ใช้ใหม่" style="flex:1">
+      <input id="newStaffPass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 4 ตัวอักษร)" style="flex:1">
+      <input id="newStaffPass2" type="password" placeholder="ยืนยันรหัสผ่าน" style="flex:1">
+      <button class="btn" style="margin:0" onclick="staffAddUser()">เพิ่มผู้ใช้</button>
+    </div>
+    <p id="usersMsg" class="muted"></p>
+    <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
+  </div>
+
+  <!-- ===== กรอกส่วนเจ้าหน้าที่ ===== -->
+  <div id="viewStaff" class="card" style="display:none">
+    <h2>ส่วนเจ้าหน้าที่เท่านั้น</h2>
+    <p class="muted" id="staffFor"></p>
+    <div id="staffMsg"></div>
+    <form id="staffForm" onsubmit="return saveStaff(event)">
+      <h3>เจ้าหน้าที่ผู้ดำเนินการ (แผนกเทคโนโลยีสารสนเทศ)</h3>
+      <div class="row">
+        <div><label>วันที่ได้รับคำร้องขอ</label><input type="date" id="staffReceivedDate"></div>
+        <div><label>วันที่ดำเนินการ</label><input type="date" id="staffProcessedDate"></div>
+      </div>
+      <label>ชื่อเจ้าหน้าที่ผู้ดำเนินการ</label><input id="staffOperatorName" placeholder="ชื่อ-นามสกุล">
+      <h3>ผู้ตรวจสอบ (ผู้จัดการฝ่ายบุคคล)</h3>
+      <label>ผลการตรวจสอบ</label>
+      <select id="checkerMatch"><option value="">— ยังไม่ระบุ —</option><option>ตรงตามคำร้องฯ</option><option>ไม่ตรงตามคำร้องฯ</option></select>
+      <label>เหตุผลในการปฏิเสธ (ถ้ามี)</label><textarea id="checkerRejectReason" rows="2"></textarea>
+      <label>ชื่อผู้ตรวจสอบ</label><input id="checkerName" placeholder="ชื่อ-นามสกุล">
+      <h3>ผู้อนุมัติคำร้องฯ (ผู้จัดการฝ่ายบัญชีและการเงิน)</h3>
+      <label>ผลการพิจารณา</label><input id="approverResult" placeholder="เช่น อนุมัติ / ไม่อนุมัติ">
+      <label>เหตุผลในการปฏิเสธ (ถ้ามี)</label><textarea id="approverRejectReason" rows="2"></textarea>
+      <label>ชื่อผู้อนุมัติ</label><input id="approverName" placeholder="ชื่อ-นามสกุล">
+      <button class="btn" type="submit">💾 บันทึกส่วนเจ้าหน้าที่</button>
+      <button class="btn secondary" type="button" onclick="showView('list')">← กลับไปรายการ</button>
+    </form>
+  </div>
+
+  <!-- ===== เข้าสู่ระบบเจ้าหน้าที่ (หลังบ้าน) ===== -->
+  <div id="viewLogin" class="card" style="display:none;max-width:520px;margin:0 auto">
+    <h2>🔐 เข้าสู่ระบบเจ้าหน้าที่</h2>
+    <p class="muted">กรอกข้อมูลเข้าสู่ระบบเพื่อดำเนินการคำร้อง เปลี่ยนสถานะ และกรอกส่วนเจ้าหน้าที่ — หน้าแบบคำร้องไม่ต้องล็อกอิน</p>
+    <div id="loginMsg"></div>
+    <label>ชื่อผู้ใช้</label><input id="loginUser" placeholder="เช่น Admin" autocomplete="username">
+    <label>รหัสผ่าน</label><input id="loginPass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')staffDoLogin()">
+    <button class="btn" style="margin-top:12px" onclick="staffDoLogin()">เข้าสู่ระบบ →</button>
+    <button class="btn secondary" onclick="showView('form')">← กลับไปกรอกคำร้อง</button>
+    <p class="muted">หากลืมรหัสผ่าน ติดต่อผู้ดูแลระบบเพื่อรีเซ็ต</p>
+  </div>
+
+  <!-- ===== ตั้งค่าบัญชีเจ้าหน้าที่ ===== -->
+  <div id="viewSettings" class="card" style="display:none;max-width:520px;margin:0 auto">
+    <h2>⚙️ ตั้งค่าบัญชีเจ้าหน้าที่</h2>
+    <p class="muted">เปลี่ยนชื่อผู้ใช้และรหัสผ่านสำหรับเข้าหลังบ้าน — หลังบันทึกจะต้องเข้าสู่ระบบใหม่ด้วยข้อมูลใหม่</p>
+    <div id="settingsMsg"></div>
+    <label>รหัสผ่านปัจจุบัน</label><input id="setCurrentPass" type="password" autocomplete="current-password">
+    <label>ชื่อผู้ใช้ใหม่</label><input id="setNewUser" placeholder="เช่น Admin">
+    <label>รหัสผ่านใหม่</label><input id="setNewPass" type="password" autocomplete="new-password">
+    <label>ยืนยันรหัสผ่านใหม่</label><input id="setNewPass2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')staffSaveSettings()">
+    <button class="btn" style="margin-top:12px" onclick="staffSaveSettings()">💾 บันทึกการเปลี่ยนแปลง</button>
+    <hr>
+    <h2>🔔 แจ้งเตือนเมื่อมีคำร้องใหม่</h2>
+    <p class="muted">หลังมีคนยื่นคำร้อง ระบบจะส่งแจ้งเตือนทันทีทั้งอีเมลและ LINE (ช่องทางไหนตั้งค่าไว้ถึงจะส่ง)</p>
+    <label>อีเมลผู้รับแจ้งเตือน (หลายคนคั่นด้วยจุลภาค)</label><input id="notifyEmails" placeholder="เช่น it@sccb.co.th, manager@sccb.co.th">
+    <label>อีเมลผู้ส่งแจ้งเตือน</label><select id="notifyFrom"></select>
+    <p class="muted">เลือกได้เฉพาะ alias ที่เพิ่มไว้ใน Gmail ของเจ้าของสคริปต์แล้ว (Gmail → ตั้งค่า → บัญชีและการนำเข้า → ส่งเมลในชื่อ) — ถ้ายังไม่มี alias ให้เลือกผู้ส่งเริ่มต้น</p>
+    <div id="notifyStatus" class="muted" style="margin-top:8px"></div>
+    <div id="notifyMsg"></div>
+    <button class="btn" style="margin-top:12px" onclick="saveNotifySettings()">💾 บันทึกการตั้งค่าแจ้งเตือน</button>
+    <button class="btn secondary" onclick="testNotify()">✉️ ทดสอบส่งแจ้งเตือน</button>
+    <button class="btn secondary" onclick="showView('list')">← กลับไปรายการ</button>
+  </div>
+
+  <!-- ===== สำรองข้อมูล / นำเข้า (หลังบ้านเท่านั้น) ===== -->
+  <div id="viewDashboard" class="card" style="display:none">
+    <h2>📊 แดชบอร์ด</h2>
+    <p class="muted">ภาพรวมคำร้อง CCTV — สรุปเฉพาะตัวเลขสำหรับเจ้าหน้าที่ที่ล็อกอินแล้วเท่านั้น (ไม่แสดงชื่อ เลขบัตร เบอร์โทร หรือเหตุผล)</p>
+    <p>ช่วงเวลา: <input type="date" id="dashFrom"> – <input type="date" id="dashTo"> <button class="btn" onclick="loadDashboard()">ดูข้อมูล</button></p>
+    <div id="dashBox" class="muted">กำลังโหลด…</div>
+  </div>
+  <div id="viewBackup" class="card" style="display:none;max-width:520px;margin:0 auto">
+    <h2>💾 สำรองข้อมูลและนำเข้าข้อมูล</h2>
+    <p class="muted">สำรองข้อมูลคำร้องทั้งหมดเป็นไฟล์ .csv (เปิดใน Excel ได้) และนำกลับเข้าระบบเมื่อต้องการ — เฉพาะเจ้าหน้าที่ที่ล็อกอินแล้วเท่านั้น</p>
+    <h3>สำรองข้อมูล</h3>
+    <p class="muted">ดาวน์โหลดคำร้องทั้งหมด (รวมข้อมูลส่วนเจ้าหน้าที่) — ไม่รวมบัญชีผู้ใช้เจ้าหน้าที่และรหัสผ่าน</p>
+    <button class="btn" onclick="exportBackup()">⬇️ ดาวน์โหลดข้อมูลสำรอง (.csv)</button>
+    <div id="exportStatus" class="muted" style="margin-top:8px"></div>
+    <hr>
+    <h3>แม่แบบสำหรับกรอกข้อมูลเอง</h3>
+    <p class="muted">ดาวน์โหลดแม่แบบ .csv ไปกรอกใน Excel แล้วอัปโหลดกลับมาที่หัวข้อถัดไป — แถวที่เว้นเลขที่คำร้องไว้ ระบบจะออกเลขที่ใหม่ให้เอง</p>
+    <button class="btn secondary" onclick="downloadTemplate()">📋 ดาวน์โหลดแม่แบบ (.csv)</button>
+    <hr>
+    <h3>นำเข้าข้อมูล (.csv)</h3>
+    <p class="muted">เลขที่คำร้องที่มีอยู่แล้วจะอัปเดตข้อมูลแถวนั้น (สถานะ/วันที่ยื่น/เวลาที่สร้างว่างไว้ = คงค่าเดิม) แถวที่ไม่มีเลขที่จะเพิ่มเป็นใบใหม่ — ไฟล์ต้องมีหัวคอลัมน์ตรงกับแม่แบบทุกคอลัมน์ และแถวใดผิดจะไม่นำเข้าทั้งไฟล์</p>
+    <input id="importFile" type="file" accept=".csv,text/csv">
+    <div id="importPreview" class="muted" style="margin-top:8px"></div>
+    <div id="importMsg"></div>
+    <button class="btn" style="margin-top:12px" onclick="previewImport()">🔍 ตรวจสอบไฟล์</button>
+    <button class="btn" id="btnDoImport" style="margin-top:12px" onclick="doImport()" disabled>✅ นำเข้าข้อมูล</button>
+    <button class="btn secondary" style="margin-top:12px" onclick="showView('list')">← กลับไปรายการ</button>
+  </div>
+
+  <!-- ===== หน้ารายการเดียวสำหรับปริ้น ===== -->
+  <div id="printSheet"></div>
+  <div class="noprint" style="margin-top:14px;display:none" id="printActions">
+    <button class="btn" onclick="window.print()">🖨️ ปริ้นฟอร์มนี้</button>
+    <button class="btn" onclick="downloadPdf()">💾 เซฟเป็นไฟล์ PDF</button>
+    <button class="btn secondary" onclick="backFromPrint()">← กลับไปรายการ</button>
+    <p class="muted" style="margin:8px 0 0" id="pdfHint">กดปุ่มเซฟแล้วไฟล์ PDF จะดาวน์โหลดลงเครื่องทันที (ไม่ต้องเลือกปลายทาง)</p>
+  </div>
+  <div id="saveModal" class="modal noprint" style="display:none">
+    <div class="modal-box">
+      <h2>✅ บันทึกเรียบร้อยแล้ว</h2>
+      <p>เลขที่คำร้อง: <b id="savedReqId"></b></p>
+      <p class="muted">ปริ้นหรือเซฟเป็นไฟล์ PDF ได้เลย</p>
+      <button class="btn" onclick="modalPrint()">🖨️ ปริ้นฟอร์มนี้</button>
+      <button class="btn" onclick="modalSavePdf()">💾 เซฟเป็นไฟล์ PDF</button>
+      <button class="btn secondary" onclick="closeSaveModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+<script>
+var THAI_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var allReqs=[]; var currentReq=null;
+var API_URL = 'https://script.google.com/macros/s/AKfycbyN-RatzNzq27sk-fN1DcQIbiDLGYLRbJxGqMioIFlZn14J4uASBxlkYER5L7hs-yu3/exec';
+// หน้าเว็บโฮสต์ที่อื่น (เช่น GitHub Pages) หลังบ้านคือ Apps Script เดิม ทำหน้าที่เป็น JSON API
+// ถ้า API_URL ว่าง = โหมดทดลองในเครื่องนี้ (localStorage)
+if(!API_URL){ document.getElementById('modePill').textContent='● โหมดทดลองในเครื่องนี้ (ยังไม่ต่อ Sheet)'; }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isoStr(v){ if(!v) return ''; if(v instanceof Date){ return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0'); } var s=String(v); if(s.indexOf('T')>=0) return s.slice(0,10); return s; }
+function timeStr(v){ if(!v) return ''; if(v instanceof Date){ return String(v.getHours()).padStart(2,'0')+':'+String(v.getMinutes()).padStart(2,'0'); } return String(v); }
+function beText(iso){ iso=isoStr(iso); if(!iso) return ''; var p=iso.split('-'); if(p.length!==3) return iso; return p[2]+' '+THAI_MONTHS[+p[1]-1]+' พ.ศ. '+(+p[0]+543); }
+function splitDate(iso){ iso=isoStr(iso); if(!iso) return {d:'',m:'',y:''}; var p=iso.split('-'); if(p.length!==3) return {d:'',m:'',y:''}; return {d:p[2],m:THAI_MONTHS[+p[1]-1],y:String(+p[0]+543)}; }
+function fmtId(id){ var s=String(id||'').replace(/\D/g,''); if(s.length===13) return s.charAt(0)+'-'+s.slice(1,5)+'-'+s.slice(5,10)+'-'+s.slice(10,12)+'-'+s.slice(12); return s; }
+function fill(v,w){ return '<span class="fill"'+(w?' style="width:'+w+'"':'')+'>'+(v?esc(v):'')+'</span>'; }
+var FORM_BG_URL = (typeof isServer !== 'undefined' && isServer) ? 'https://it-sccb.github.io/cctv-request/cctv-form-bg.png' : 'cctv-form-bg.png';
+function ovl(x,y,t){ return '<div class="ovl" style="left:'+x+'mm;top:'+y+'mm">'+t+'</div>'; }
+function ovlSm(x,y,t){ return '<div class="ovl sm" style="left:'+x+'mm;top:'+y+'mm">'+t+'</div>'; }
+function ovlBox(x,y,w,t){ return '<div class="ovl box" style="left:'+x+'mm;top:'+y+'mm;width:'+w+'mm">'+t+'</div>'; }
+function ovlL(x,y,w,t){ return '<div class="ovl left" style="left:'+x+'mm;top:'+y+'mm;width:'+w+'mm">'+t+'</div>'; }
+function chk(x,y){ return '<div class="ovl chk" style="left:'+x+'mm;top:'+y+'mm">\u2713</div>'; }
+function ffill(v,g){ return '<span class="fill" style="flex:'+g+' 1 0;min-width:0">'+(v?esc(v):'')+'</span>'; }
+function dotline(){ return '<div class="dline"></div>'; }
+function beShort(iso){ iso=isoStr(iso); if(!iso) return ''; var p=iso.split('-'); if(p.length!==3) return iso; return p[2]+'/'+p[1]+'/'+(+p[0]+543); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+document.getElementById('todayBE').textContent = beText(todayISO());
+document.getElementById('footageDate').value = todayISO();
+onReqTypeChange();
+
+// ---- หลังบ้าน: ล็อกอินเจ้าหน้าที่ (v32) ----
+// หน้าบ้าน (กรอกคำร้อง) ไม่ต้องล็อกอิน; รายการ/เปลี่ยนสถานะ/ส่วนเจ้าหน้าที่/ดู-ปริ้น ต้องล็อกอิน
+// token เก็บใน sessionStorage (ปิดแท็บแล้วหาย อายุ 8 ชม. ที่หลังบ้าน); ผู้ยื่นปริ้นใบที่เพิ่งยื่น
+// ได้ด้วย printToken อายุ 15 นาทีที่มากับผลบันทึก (ไม่ต้องล็อกอิน)
+var staffToken = sessionStorage.getItem('cctv_staff_token') || '';
+var staffUser = sessionStorage.getItem('cctv_staff_user') || '';
+var printToken = '';
+function updateStaffUI(){
+  var logged = !!staffToken;
+  document.getElementById('tabList').style.display = logged?'':'none';
+  document.getElementById('tabBackup').style.display = logged?'':'none';
+  document.getElementById('tabDashboard').style.display = logged?'':'none';
+  document.getElementById('tabStaff').style.display = logged?'none':'';
+  document.getElementById('staffBar').style.display = logged?'':'none';
+  if(logged) document.getElementById('staffUserName').textContent = staffUser;
+}
+function showStaffLogin(){
+  var m=document.getElementById('loginMsg'); m.textContent=''; m.className='';
+  showView('login');
+}
+function staffDoLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value;
+  var m=document.getElementById('loginMsg');
+  if(!u||!p){ m.className='err'; m.textContent='กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'; return; }
+  server('staffLogin',{staffUser:u,staffPass:p},function(res){
+    staffToken=res.token; staffUser=res.user;
+    sessionStorage.setItem('cctv_staff_token',staffToken);
+    sessionStorage.setItem('cctv_staff_user',staffUser);
+    document.getElementById('loginPass').value='';
+    updateStaffUI(); showView('list');
+  },function(msg){ m.className='err'; m.textContent=msg; });
+}
+function staffLogout(){
+  if(staffToken) server('staffLogout',{token:staffToken},function(){},function(){});
+  staffToken=''; staffUser='';
+  sessionStorage.removeItem('cctv_staff_token'); sessionStorage.removeItem('cctv_staff_user');
+  updateStaffUI(); showView('form');
+}
+function staffSessionExpired(){
+  staffToken=''; staffUser='';
+  sessionStorage.removeItem('cctv_staff_token'); sessionStorage.removeItem('cctv_staff_user');
+  updateStaffUI();
+  var m=document.getElementById('loginMsg'); m.className='err'; m.textContent='เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่';
+  showView('login');
+}
+function showSettings(){
+  var m=document.getElementById('settingsMsg'); m.textContent=''; m.className='';
+  showView('settings');
+  loadNotifySettings();
+}
+function staffSaveSettings(){
+  var cur=document.getElementById('setCurrentPass').value;
+  var nu=document.getElementById('setNewUser').value.trim();
+  var np=document.getElementById('setNewPass').value;
+  var np2=document.getElementById('setNewPass2').value;
+  var m=document.getElementById('settingsMsg');
+  if(!cur||!nu||!np||!np2){ m.className='err'; m.textContent='กรุณากรอกให้ครบทุกช่อง'; return; }
+  if(np!==np2){ m.className='err'; m.textContent='รหัสผ่านใหม่สองช่องไม่ตรงกัน'; return; }
+  if(np.length<4){ m.className='err'; m.textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'; return; }
+  server('staffChangeCredentials',{token:staffToken,currentPass:cur,newUser:nu,newPass:np},function(){
+    staffLogout();
+    var lm=document.getElementById('loginMsg'); lm.className='ok'; lm.textContent='เปลี่ยนข้อมูลแล้ว กรุณาเข้าสู่ระบบใหม่ด้วยข้อมูลใหม่';
+    showView('login');
+  },function(msg){ m.className='err'; m.textContent=msg; });
+}
+// ---- ตั้งค่าแจ้งเตือน (v45): เลือกผู้ส่ง alias ได้ ----
+function loadNotifySettings(){
+  server('getNotifySettings',null,function(s){
+    document.getElementById('notifyEmails').value=s.emails||'';
+    var sel=document.getElementById('notifyFrom');
+    var cur=s.sender||'';
+    var opts='<option value="">ผู้ส่งเริ่มต้น'+(s.defaultSender?' ('+esc(s.defaultSender)+')':'')+'</option>';
+    (s.aliases||[]).forEach(function(a){ opts+='<option value="'+esc(a)+'"'+(a===cur?' selected':'')+'>'+esc(a)+'</option>'; });
+    if(cur && (s.aliases||[]).indexOf(cur)<0){ opts+='<option value="'+esc(cur)+'" selected>'+esc(cur)+' (alias นี้ถูกลบไปแล้ว — จะส่งจากผู้ส่งเริ่มต้น)</option>'; }
+    sel.innerHTML=opts;
+    var line = s.lineTokenSet ? '✅ เชื่อมต่อ LINE แล้ว' : '⏳ ยังไม่ได้ใส่ LINE token';
+    if(s.lineTarget) line += ' — ส่งไปที่ ' + (s.lineGroupId && s.lineTarget===s.lineGroupId ? 'กลุ่มไลน์เจ้าหน้าที่' : 'แชทส่วนตัว');
+    else if(s.lineTokenSet) line += ' (ยังไม่มีปลายทาง — เชิญบัญชีเข้ากลุ่มไลน์เจ้าหน้าที่ก่อน)';
+    document.getElementById('notifyStatus').innerHTML =
+      'อีเมล: ' + (s.emails ? '✅ ' + esc(s.emails) : '⏳ ยังไม่ได้ตั้ง') + '<br>' +
+      'ผู้ส่ง: ' + (cur ? esc(cur) : (s.defaultSender ? 'ผู้ส่งเริ่มต้น ('+esc(s.defaultSender)+')' : 'ผู้ส่งเริ่มต้น')) + '<br>' + line;
+  },function(){ document.getElementById('notifyStatus').textContent='โหลดสถานะไม่ได้'; });
+}
+function saveNotifySettings(){
+  var v=document.getElementById('notifyEmails').value;
+  var f=document.getElementById('notifyFrom').value;
+  var m=document.getElementById('notifyMsg');
+  server('saveNotifySettings',{emails:v,sender:f},function(){
+    m.className='ok'; m.textContent='บันทึกการตั้งค่าแจ้งเตือนแล้ว';
+    loadNotifySettings();
+  },function(e){ m.className='err'; m.textContent=e; });
+}
+function testNotify(){
+  var m=document.getElementById('notifyMsg');
+  m.className=''; m.textContent='กำลังทดสอบส่ง...';
+  server('testNotify',null,function(r){
+    m.className='ok'; m.textContent='ผลทดสอบ — อีเมล: ' + r.email + ' | LINE: ' + r.line;
+    loadNotifySettings();
+  },function(e){ m.className='err'; m.textContent=e; });
+}
+// ---- จัดการผู้ใช้เจ้าหน้าที่ (v35) ----
+function showUsers(){ showView('users'); }
+function loadUsers(){ server('staffListUsers',null,function(list){ renderUsers(list); },function(){ document.getElementById('usersBox').textContent='โหลดรายชื่อไม่ได้'; }); }
+function renderUsers(list){
+  if(!list.length){ document.getElementById('usersBox').innerHTML='<p>ยังไม่มีผู้ใช้</p>'; return; }
+  var h='<table><tr><th>ชื่อผู้ใช้</th><th>สร้างเมื่อ</th><th></th></tr>';
+  list.forEach(function(u){
+    var self = u.username===staffUser;
+    h+='<tr><td>'+esc(u.username)+(self?' (คุณ)':'')+'</td><td>'+esc(u.createdAt||'-')+'</td><td>'+(self?'<span class="muted">ผู้ใช้ปัจจุบัน</span>':'<button class="printbtn" onclick="staffDeleteUser(\''+u.username.replace(/'/g,"\\'")+'\')">🗑️ ลบ</button>')+'</td></tr>';
+  });
+  document.getElementById('usersBox').innerHTML=h+'</table>';
+}
+function staffAddUser(){
+  var u=document.getElementById('newStaffUser').value.trim();
+  var p=document.getElementById('newStaffPass').value;
+  var p2=document.getElementById('newStaffPass2').value;
+  var m=document.getElementById('usersMsg');
+  if(!u){ m.textContent='กรุณากรอกชื่อผู้ใช้ใหม่'; return; }
+  if(p.length<4){ m.textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'; return; }
+  if(p!==p2){ m.textContent='รหัสผ่านใหม่สองช่องไม่ตรงกัน'; return; }
+  server('staffAddUser',{newUser:u,newPass:p},function(){
+    m.textContent='เพิ่มผู้ใช้ '+u+' แล้ว';
+    document.getElementById('newStaffUser').value=''; document.getElementById('newStaffPass').value=''; document.getElementById('newStaffPass2').value='';
+    loadUsers();
+  },function(e){ m.textContent=e; });
+}
+function staffDeleteUser(name){
+  if(!confirm('ลบผู้ใช้ '+name+' ใช่หรือไม่? ผู้ใช้นี้จะล็อกอินไม่ได้อีก')) return;
+  server('staffDeleteUser',{targetUser:name},function(){ loadUsers(); },function(e){ document.getElementById('usersMsg').textContent=e; });
+}
+// ---- ดาวน์โหลด PDF จริง (v36): วาดฟอร์มลง canvas แล้วเซฟด้วย jsPDF ----
+// jsPDF โหลดเมื่อกดเซฟครั้งแรกเท่านั้น (ไฟล์ lib/jspdf.umd.min.js โฮสต์เองใน repo;
+// ภาพพื้นหลังโหลดแบบ crossOrigin ได้เพราะ drive thumbnail ส่ง Access-Control-Allow-Origin: *)
+var JSPDF_URL = (typeof isServer !== 'undefined' && isServer) ? 'https://it-sccb.github.io/cctv-request/lib/jspdf.umd.min.js' : 'lib/jspdf.umd.min.js';
+var PDF_MM = 1654/210; // px ต่อ 1mm บนภาพพื้นหลัง 200dpi (1654x2339 = A4 210x297mm)
+function pdfFontPt(pt){ return Math.round(pt*0.3528*PDF_MM)+'px "Angsana New","TH Sarabun New",Tahoma,serif'; }
+// ข้อความกลาง (เหมือน .ovl): x,y คือจุดบนของ span (mm) — ศูนย์กลางตัวหนังสืออยู่ต่ำกว่าจุดบนครึ่งหนึ่งของ line-height
+function pdfText(ctx,txt,xMm,yMm,pt){
+  if(!txt) return;
+  ctx.font=pdfFontPt(pt); ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(txt, xMm*PDF_MM, (yMm + pt*1.15*0.3528/2)*PDF_MM);
+}
+function pdfTextSm(ctx,txt,xMm,yMm){ pdfText(ctx,txt,xMm,yMm,12); }
+function pdfCheck(ctx,xMm,yMm){
+  ctx.font=Math.round(11*0.3528*PDF_MM)+'px Tahoma,"Segoe UI Symbol",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('\u2713', xMm*PDF_MM, yMm*PDF_MM);
+}
+// พิกัดวงกลมคำนำหน้า (v41): แผนที่เดียวใช้ทั้งใบปริ้น HTML และ PDF — วัดตัวอักษรจากภาพพื้นหลังด้วยโค้ด 1px=0.127mm; นางสาวกว้าง 12.0 + ขยับขวา 0.3 มม. เพื่อให้ขอบวงไม่บังตัว ว (ขอบซ้ายคงที่ 48.8 มม. เพราะชิดเครื่องหมาย / แล้ว)
+var TITLE_CIRCLE_MAP={'นาย':[39.6,6.2],'นาง':[45.7,5.9],'นางสาว':[54.8,12.0]};
+function pdfTitleCircle(ctx,title){
+  var c=TITLE_CIRCLE_MAP[title];
+  if(!c) return;
+  ctx.beginPath();
+  ctx.ellipse(c[0]*PDF_MM, 55.4*PDF_MM, c[1]/2*PDF_MM, 3.5*PDF_MM, 0, 0, Math.PI*2);
+  ctx.lineWidth=1.2*0.3528*PDF_MM; ctx.strokeStyle='#000'; ctx.stroke();
+}
+// ตัดคำภาษาไทยทีละตัวอักษรให้พอดีความกว้าง (เบราว์เซอร์ตัดบรรทัดภาษาไทยแบบเดียวกัน)
+function pdfWrap(ctx,txt,maxW){
+  var lines=[''], li=0;
+  for(var i=0;i<txt.length;i++){
+    var ch=txt[i];
+    if(ctx.measureText(lines[li]+ch).width > maxW && lines[li]){ li++; lines[li]=''; }
+    lines[li]+=ch;
+  }
+  return lines;
+}
+// กล่องข้อความกลาง (เหมือน .ovl.box): cx คือจุดกลางกล่อง, lineHmm คือความสูงต่อบรรทัด
+function pdfBox(ctx,txt,cxMm,yMm,wMm,pt,lineHmm){
+  if(!txt) return;
+  txt=String(txt).replace(/\n/g,' ');
+  ctx.font=pdfFontPt(pt); ctx.textAlign='center'; ctx.textBaseline='middle';
+  var lines=pdfWrap(ctx,txt,wMm*PDF_MM);
+  lines.forEach(function(ln,i){ ctx.fillText(ln, cxMm*PDF_MM, (yMm + lineHmm/2 + i*lineHmm)*PDF_MM); });
+}
+// ข้อความชิดซ้าย (เหมือน .ovl.left): x คือขอบซ้าย
+function pdfLeft(ctx,txt,xMm,yMm,wMm,lineHmm){
+  if(!txt) return;
+  txt=String(txt).replace(/\n/g,' ');
+  ctx.font=pdfFontPt(14); ctx.textAlign='left'; ctx.textBaseline='middle';
+  var lines=pdfWrap(ctx,txt,wMm*PDF_MM);
+  lines.forEach(function(ln,i){ ctx.fillText(ln, xMm*PDF_MM, (yMm + lineHmm/2 + i*lineHmm)*PDF_MM); });
+}
+function drawPrintCanvas(r,cb){
+  var cv=document.createElement('canvas'); cv.width=1654; cv.height=2339;
+  var ctx=cv.getContext('2d');
+  function drawWith(img){
+    try{
+      ctx.drawImage(img,0,0,1654,2339);
+      ctx.fillStyle='#000';
+      var rd=splitDate(r.requestDate), fd=splitDate(r.footageDate);
+      pdfText(ctx,rd.d,124.0,40.1,14); pdfText(ctx,rd.m,147.7,40.1,14); pdfText(ctx,rd.y,174.4,40.1,14);
+      pdfTitleCircle(ctx,r.title);
+      pdfText(ctx,r.fullName,88.3,52.0,14); pdfText(ctx,fmtId(r.idCard),163.0,52.0,14);
+      pdfText(ctx,r.phone,116.9,58.7,14);
+      pdfText(ctx,r.department,108.7,65.4,14);
+      pdfText(ctx,r.area,71.4,78.7,14); pdfText(ctx,r.location,150.0,78.7,14);
+      pdfText(ctx,fd.d,40.3,85.4,14); pdfText(ctx,fd.m,65.7,85.4,14); pdfText(ctx,fd.y,89.0,85.4,14);
+      pdfText(ctx,timeStr(r.timeFrom),124.6,85.4,14); pdfText(ctx,timeStr(r.timeTo),166.4,85.4,14);
+      pdfLeft(ctx,r.reason,53.0,92.0,131.0,6.7);
+      var atts=['สำเนาบัตรประจำตัวประชาชน','หมายศาล','หนังสือที่ออกจากหน่วยงานราชการ','รายงานประจำวันแจ้งเป็นหลักฐาน'];
+      var attList=(Array.isArray(r.attachments)?r.attachments:(r.attachments||'').split(',')).map(function(s){return s.trim();}).filter(Boolean);
+      var chkXY=[[26.8,122.0],[71.4,122.0],[89.6,122.1],[142.0,122.0]];
+      atts.forEach(function(a,i){ if(attList.indexOf(a)>=0) pdfCheck(ctx,chkXY[i][0],chkXY[i][1]); });
+      if(attList.indexOf('อื่นๆ')>=0) pdfCheck(ctx,26.8,128.8);
+      pdfText(ctx,r.otherAttachment,117.0,125.4,14);
+      pdfText(ctx,r.title+' '+r.fullName,59.3,171.1,14);
+      pdfTextSm(ctx,r.staffReceivedDate?beShort(r.staffReceivedDate):'',63.7,198.5);
+      pdfTextSm(ctx,r.staffProcessedDate?beShort(r.staffProcessedDate):'',61.1,204.3);
+      if(r.checkerMatch==='ตรงตามคำร้องฯ') pdfCheck(ctx,82.2,201.2);
+      if(r.checkerMatch==='ไม่ตรงตามคำร้องฯ') pdfCheck(ctx,82.0,207.1);
+      pdfBox(ctx,r.checkerRejectReason,116.6,210.0,25.2,12,5.7);
+      pdfBox(ctx,r.approverResult,166.1,198.1,31.5,12,5.7);
+      pdfBox(ctx,r.approverRejectReason,169.1,209.5,25.2,12,5.7);
+      pdfTextSm(ctx,r.staffOperatorName||'',52.5,232.9);
+      pdfTextSm(ctx,r.checkerName||'',105.0,232.9);
+      pdfTextSm(ctx,r.approverName||'',157.6,233.4);
+      cb(cv);
+    }catch(err){ cb(null,err); }
+  }
+  function loadDirect(){
+    var img=new Image(); img.crossOrigin='anonymous';
+    img.onload=function(){ drawWith(img); };
+    img.onerror=function(){ cb(null); };
+    img.src=FORM_BG_URL;
+  }
+  // โหลดภาพพื้นหลังเป็น blob ก่อน (v38): ภาพโฮสต์เองใน repo (same-origin บน GitHub Pages
+  // / CORS-safe บน Apps Script) object URL จึงไม่โดน taint; ถ้า fetch ใช้ไม่ได้ค่อยโหลดตรง
+  try{
+    if(window.fetch){
+      fetch(FORM_BG_URL,{mode:'cors'}).then(function(res){ if(!res.ok) throw new Error('http '+res.status); return res.blob(); }).then(function(b){
+        var u=URL.createObjectURL(b);
+        var img=new Image();
+        img.onload=function(){ drawWith(img); try{ URL.revokeObjectURL(u); }catch(e){} };
+        img.onerror=function(){ cb(null); };
+        img.src=u;
+      }).catch(function(){ loadDirect(); });
+      return;
+    }
+  }catch(e){}
+  loadDirect();
+}
+function pdfFail(msg){
+  var h=document.getElementById('pdfHint');
+  if(h) h.textContent='เซฟ PDF ไม่ได้: '+msg+' (ลองใช้ปุ่มปริ้นแล้วเลือก Save as PDF แทนได้)';
+}
+function downloadPdf(){
+  if(!currentReq){ alert('ยังไม่มีใบคำร้องที่เปิดอยู่'); return; }
+  var r=currentReq;
+  var hint=document.getElementById('pdfHint'); if(hint) hint.textContent='กำลังสร้างไฟล์ PDF…';
+  drawPrintCanvas(r,function(cv,err){
+    if(!cv){ pdfFail(err ? ('วาดฟอร์มไม่ได้: '+err.message) : 'โหลดภาพพื้นหลังไม่ได้ ตรวจเน็ตแล้วลองใหม่'); return; }
+    function savePng(){
+      try{
+        var a=document.createElement('a');
+        a.href=cv.toDataURL('image/png'); a.download=(r.id||'cctv-request')+'.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        if(hint) hint.textContent='เซฟเป็นไฟล์รูปภาพแทนแล้ว';
+      }catch(e){ pdfFail('สร้างไฟล์ไม่ได้: '+e.message); }
+    }
+    function saveWithJsPdf(){
+      try{
+        var pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+        pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
+        pdf.save((r.id||'cctv-request')+'.pdf');
+        if(hint) hint.textContent='ดาวน์โหลดไฟล์ PDF แล้ว';
+      }catch(e){ savePng(); }
+    }
+    if(window.jspdf && window.jspdf.jsPDF){ saveWithJsPdf(); return; }
+    var s=document.createElement('script'); s.src=JSPDF_URL;
+    s.onload=function(){ saveWithJsPdf(); };
+    s.onerror=function(){ savePng(); };
+    document.head.appendChild(s);
+  });
+}
+function backFromPrint(){
+  // กลับไป view เดิม + ปรับ hash ให้ตรง (ฟอร์ม = ไม่มี hash)
+  var backHash = { list: '#staff', public: '#list' };
+  if (typeof window !== 'undefined' && window.location) window.location.hash = backHash[printReturn] || '';
+  showView(printReturn);
+}
+updateStaffUI();
+
+function showView(v){
+  // รายการและตั้งค่าเป็นของหลังบ้าน ต้องล็อกอินก่อน (ดูย้อนหลังดูได้อย่างเดียว ไม่ต้องล็อกอิน)
+  if((v==='list'||v==='settings'||v==='staff'||v==='users'||v==='backup'||v==='dashboard') && !staffToken){ showView('login'); return; }
+  document.querySelector('.wrap').classList.toggle('wide', v==='list'||v==='public'||v==='dashboard');
+  document.getElementById('viewForm').style.display = v==='form'?'block':'none';
+  document.getElementById('viewList').style.display = v==='list'?'block':'none';
+  document.getElementById('viewPublic').style.display = v==='public'?'block':'none';
+  document.getElementById('viewStaff').style.display = v==='staff'?'block':'none';
+  document.getElementById('viewLogin').style.display = v==='login'?'block':'none';
+  document.getElementById('viewSettings').style.display = v==='settings'?'block':'none';
+  document.getElementById('viewUsers').style.display = v==='users'?'block':'none';
+  document.getElementById('viewBackup').style.display = v==='backup'?'block':'none';
+  document.getElementById('viewDashboard').style.display = v==='dashboard'?'block':'none';
+  document.getElementById('printActions').style.display = 'none';
+  document.getElementById('printSheet').innerHTML='';
+  document.getElementById('tabForm').className = v==='form'?'active':'';
+  document.getElementById('tabList').className = v==='list'?'active':'';
+  document.getElementById('tabPublic').className = v==='public'?'active':'';
+  document.getElementById('tabBackup').className = v==='backup'?'active':'';
+  document.getElementById('tabDashboard').className = v==='dashboard'?'active':'';
+  if(v==='list') loadList();
+  if(v==='public') loadPublicList();
+  if(v==='users') loadUsers();
+  if(v==='dashboard') loadDashboard();
+  // hash routing: URL สะท้อน view ปัจจุบัน ก็อปปี้ลิงก์ไปเปิดที่ไหนก็ถูก view (ฟอร์มไม่ใส่ hash เพราะเป็นค่าเริ่มต้น)
+  var hashMap = { public: '#list', list: '#staff', login: '#login', settings: '#settings', users: '#users', backup: '#backup', dashboard: '#dashboard' };
+  if (v === 'form' && typeof window !== 'undefined' && window.location && window.location.hash !== '') window.location.hash = '';
+  else if (hashMap[v] && typeof window !== 'undefined' && window.location && window.location.hash !== hashMap[v]) window.location.hash = hashMap[v];
+}
+// ---- ชั้นข้อมูล: ต่อ Apps Script ได้, ไม่มีก็ใช้ localStorage ทดลอง ----
+function server(fn,arg,ok,err){
+  // ทุกคำสั่งหลังบ้านแนบ token เจ้าหน้าที่อัตโนมัติ (ยกเว้นยื่นคำร้องกับล็อกอิน)
+  if(fn!=='saveRequest' && fn!=='staffLogin'){
+    if(typeof arg==='string') arg={id:arg,token:staffToken};
+    else { arg=arg||{}; if(staffToken) arg.token=staffToken; }
+  }
+  if(API_URL){
+    var q = new URLSearchParams({action:fn});
+    if(typeof arg==='string'){ q.set('id', arg); }
+    else if(arg){ Object.keys(arg).forEach(function(k){
+      var v = arg[k];
+      if(v==null) return;
+      if(k==='staff' && typeof v==='object'){ Object.keys(v).forEach(function(k2){ if(v[k2]!=null) q.set(k2, v[k2]); }); return; }
+      if(k==='rows' && Array.isArray(v)){ q.set(k, JSON.stringify(v)); return; }
+      if(Array.isArray(v)) q.set(k, v.join(','));
+      else q.set(k, String(v));
+    }); }
+    q.set('_', String(Date.now()));
+    fetch(API_URL+'?'+q.toString()).then(function(res){ return res.json(); }).then(function(out){
+      if(out && out.ok) ok(out.data);
+      else if(out && out.error==='unauthorized'){ if(fn!=='getPublicRequest' && fn!=='listPublic') staffSessionExpired(); (err||function(){})(out.error); }
+      else (err||function(m){alert(m);})(out && out.error || 'เรียก API ไม่สำเร็จ');
+    }).catch(function(e){ (err||function(m){alert(m);})(e.message||e); });
+  } else { try{ ok(demo(fn,arg)); }catch(e){ (err||alert)(e.message||e); } }
+}
+function demoStats_(list, arg){
+  var from=String((arg&&arg.from)||''), to=String((arg&&arg.to)||'');
+  var today=todayISO(); if(!from) from=today.slice(0,8)+'01'; if(!to) to=today;
+  if(from>to){ var t=from; from=to; to=t; }
+  var days=[]; var d=new Date(from+'T00:00:00Z'); var end=new Date(to+'T00:00:00Z');
+  if(!isNaN(d.getTime())&&!isNaN(end.getTime())){ while(d<=end){ days.push(d.toISOString().slice(0,10)); d=new Date(d.getTime()+86400000); } }
+  var dailyMap={}; days.forEach(function(x){ dailyMap[x]=0; });
+  var total=0; var byStatus={'รอตรวจสอบ':0,'กำลังดำเนินการ':0,'อนุมัติ':0,'ปฏิเสธ':0};
+  var deptMap={}; var areaMap={}; var pending={notReceived:0,inProgress:0,awaitingApproval:0};
+  var durSum=0,durN=0; var checker={match:0,mismatch:0,pending:0}; var appr={withResult:0,withoutResult:0}; var apprMap={};
+  list.forEach(function(o){
+    var rd=o.requestDate||''; if(rd<from||rd>to) return; total++;
+    if(byStatus[o.status]===undefined) byStatus[o.status]=0; byStatus[o.status]++;
+    var dept=o.department||'(ไม่ระบุแผนก)'; deptMap[dept]=(deptMap[dept]||0)+1;
+    var areaKey=((o.area||'')+' / '+(o.location||'')).replace(/^\s*\/\s*|\s*\/\s*$/g,'').trim();
+    if(areaKey) areaMap[areaKey]=(areaMap[areaKey]||0)+1;
+    if(dailyMap[rd]!==undefined) dailyMap[rd]++;
+    if(o.status==='รอตรวจสอบ'&&!o.staffReceivedDate) pending.notReceived++;
+    if(o.status==='กำลังดำเนินการ') pending.inProgress++;
+    if(o.checkerMatch&&!o.approverResult) pending.awaitingApproval++;
+    if(o.staffReceivedDate&&o.staffProcessedDate){ var dd=(Date.parse(o.staffProcessedDate)-Date.parse(o.staffReceivedDate))/86400000; if(!isNaN(dd)&&dd>=0){ durSum+=dd; durN++; } }
+    if(o.checkerMatch==='ตรงตามคำร้องฯ') checker.match++; else if(o.checkerMatch==='ไม่ตรงตามคำร้องฯ') checker.mismatch++; else checker.pending++;
+    if(o.approverResult){ appr.withResult++; apprMap[o.approverResult]=(apprMap[o.approverResult]||0)+1; } else appr.withoutResult++;
+  });
+  function top(map,n){ return Object.keys(map).map(function(k){ return {name:k,count:map[k]}; }).sort(function(a,b){ return b.count-a.count||(a.name<b.name?-1:1); }).slice(0,n); }
+  var apprTop=Object.keys(apprMap).map(function(k){ return {value:k,count:apprMap[k]}; }).sort(function(a,b){ return b.count-a.count||(a.value<b.value?-1:1); }).slice(0,5);
+  return {from:from,to:to,total:total,byStatus:byStatus,byDepartment:top(deptMap,100),byArea:top(areaMap,5),daily:days.map(function(x){ return {date:x,count:dailyMap[x]||0}; }),pending:pending,durations:{avgDays:durN?Math.round(durSum/durN*10)/10:null,n:durN},checker:checker,approver:{withResult:appr.withResult,withoutResult:appr.withoutResult,top:apprTop}};
+}
+function demo(fn,arg){
+  var key='cctv_requests_demo'; var list=JSON.parse(localStorage.getItem(key)||'[]');
+  if(fn==='saveRequest'){
+    arg.id='CCTV-'+todayISO().replace(/-/g,'')+'-'+String(list.length+1).padStart(3,'0');
+    arg.requestDate=todayISO(); arg.status='รอตรวจสอบ';
+    arg.createdAt=todayISO()+' '+new Date().toTimeString().slice(0,5); list.push(arg); localStorage.setItem(key,JSON.stringify(list));
+    var dk='demo-key-'+arg.id; var km={}; try{ km=JSON.parse(localStorage.getItem('cctv_requester_keys')||'{}'); }catch(e){} km[arg.id]=dk; localStorage.setItem('cctv_requester_keys',JSON.stringify(km));
+    return {id:arg.id, requesterKey:dk};
+  }
+  function demoUsers(){ var list=null; try{ list=JSON.parse(localStorage.getItem('cctv_staff_demo_users')||'null'); }catch(e){} if(!Array.isArray(list)||!list.length) list=[{"user":"Admin","pass":"1234"}]; return list; }
+  function demoSaveUsers(list){ localStorage.setItem('cctv_staff_demo_users',JSON.stringify(list)); }
+  if(fn==='staffLogin'){ var list=demoUsers(); var u=arg.staffUser, p=arg.staffPass; var f=list.filter(function(x){return x.user===u;}); if(!f.length||f[0].pass!==p) throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); return {token:'demo',user:u}; }
+  if(fn==='staffLogout'){ return true; }
+  if(fn==='staffChangeCredentials'){ var list=demoUsers(); var me=list.filter(function(x){return x.user===staffUser;})[0]||list[0]; if(arg.currentPass!==me.pass) throw new Error('รหัสผ่านปัจจุบันไม่ถูกต้อง'); if(!arg.newUser) throw new Error('กรุณากรอกชื่อผู้ใช้ใหม่'); if(String(arg.newPass||'').length<4) throw new Error('รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'); if(arg.newUser!==me.user&&list.some(function(x){return x.user===arg.newUser;})) throw new Error('ชื่อผู้ใช้นี้มีอยู่แล้ว'); me.user=arg.newUser; me.pass=arg.newPass; demoSaveUsers(list); return true; }
+  if(fn==='staffListUsers'){ return demoUsers().map(function(x){ return {username:x.user,createdAt:x.createdAt||''}; }); }
+  if(fn==='staffAddUser'){ var list=demoUsers(); if(!arg.newUser) throw new Error('กรุณากรอกชื่อผู้ใช้ใหม่'); if(String(arg.newPass||'').length<4) throw new Error('รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร'); if(list.some(function(x){return x.user===arg.newUser;})) throw new Error('ชื่อผู้ใช้นี้มีอยู่แล้ว'); list.push({user:arg.newUser,pass:arg.newPass,createdAt:''}); demoSaveUsers(list); return true; }
+  if(fn==='staffDeleteUser'){ var list=demoUsers(); if(arg.targetUser===staffUser) throw new Error('ไม่สามารถลบผู้ใช้ที่กำลังใช้งานอยู่ได้'); if(list.length<=1) throw new Error('ต้องเหลือผู้ใช้เจ้าหน้าที่อย่างน้อย 1 คน'); var i=list.findIndex(function(x){return x.user===arg.targetUser;}); if(i<0) throw new Error('ไม่พบผู้ใช้ '+arg.targetUser); list.splice(i,1); demoSaveUsers(list); return true; }
+  if(fn==='getNotifySettings'){ var em=localStorage.getItem('cctv_notify_demo_emails')||''; var sd=localStorage.getItem('cctv_notify_demo_sender')||''; return {emails:em,sender:sd,aliases:[],defaultSender:'',lineTokenSet:false,lineTarget:'',lineGroupId:'',lineUserId:''}; }
+  if(fn==='saveNotifySettings'){ var ems=String(arg.emails||'').split(',').map(function(s){return s.trim();}).filter(function(s){return s;}); for(var i=0;i<ems.length;i++){ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ems[i])) throw new Error('อีเมลไม่ถูกต้อง: '+ems[i]); } localStorage.setItem('cctv_notify_demo_emails', ems.join(',')); localStorage.setItem('cctv_notify_demo_sender', String(arg.sender||'')); return true; }
+  if(fn==='testNotify'){ var em2=localStorage.getItem('cctv_notify_demo_emails')||''; var sd2=localStorage.getItem('cctv_notify_demo_sender')||''; return {email: em2?('sent (demo)'+(sd2?' ผู้ส่ง: '+sd2:'')):'skipped: no recipients', line:'skipped: no token/target'}; }
+  if(fn==='listPublic'){
+    var pkeys={}; try{ pkeys=JSON.parse((arg&&arg.rkeys)||'{}'); }catch(e){}
+    var storedKeys={}; try{ storedKeys=JSON.parse(localStorage.getItem('cctv_requester_keys')||'{}'); }catch(e){}
+    return list.slice().reverse().map(function(r){
+      var own = pkeys[r.id] && storedKeys[r.id] && pkeys[r.id]===storedKeys[r.id] && demoRequesterAgeDays(r.createdAt||r.requestDate) <= 30;
+      if(own){ var c=Object.assign({},r); c.idCardMasked=(r.idCard||'').charAt(0)+'XXXXXXXXX'+(r.idCard||'').slice(-2); delete c.idCard; c.staffDone=!!(r.staffReceivedDate||r.staffProcessedDate||r.staffOperatorName||r.checkerName||r.approverName); delete c.staffReceivedDate; delete c.staffProcessedDate; delete c.staffOperatorName; delete c.checkerMatch; delete c.checkerRejectReason; delete c.checkerName; delete c.approverResult; delete c.approverRejectReason; delete c.approverName; c.own=true; return c; }
+      return { idMasked: String(r.id||'').replace(/-\d{3}$/,'-***'), requestDate: r.requestDate, department: r.department, status: r.status, own: false };
+    });
+  }
+  if(fn==='getPublicRequest'){
+    var gid=(typeof arg==='string')?arg:arg.id; var f=list.filter(function(r){return r.id===gid;}); if(!f.length) throw new Error('ไม่พบคำร้อง');
+    var rk=(arg&&typeof arg==='object')?(arg.rkey||''):'';
+    var sk={}; try{ sk=JSON.parse(localStorage.getItem('cctv_requester_keys')||'{}'); }catch(e){}
+    var okOwn = rk && sk[gid] && rk===sk[gid] && demoRequesterAgeDays(f[0].createdAt||f[0].requestDate) <= 30;
+    var okPrint = !!(arg&&typeof arg==='object'&&arg.printToken);
+    if(!okOwn && !okPrint) throw new Error('unauthorized');
+    // ผู้ยื่น (v59): คืนเฉพาะข้อมูลของตัวเอง ตัดส่วนเจ้าหน้าที่ออก (เหมือนหลังบ้าน)
+    var pc=Object.assign({},f[0]); pc.staffDone=!!(pc.staffReceivedDate||pc.staffProcessedDate||pc.staffOperatorName||pc.checkerName||pc.approverName); delete pc.staffReceivedDate; delete pc.staffProcessedDate; delete pc.staffOperatorName; delete pc.checkerMatch; delete pc.checkerRejectReason; delete pc.checkerName; delete pc.approverResult; delete pc.approverRejectReason; delete pc.approverName; return pc;
+  }
+  if(fn==='listRequests'){ return list.slice().reverse().map(function(r){ var c=Object.assign({},r); c.idCardMasked=(r.idCard||'').charAt(0)+'XXXXXXXXX'+(r.idCard||'').slice(-2); delete c.idCard; c.staffDone=!!(r.staffReceivedDate||r.staffProcessedDate||r.staffOperatorName||r.checkerName||r.approverName); return c; }); }
+  if(fn==='getDashboardStats'){ return demoStats_(list, arg); }
+  if(fn==='getRequest'){ var gid=(typeof arg==='string')?arg:arg.id; var f=list.filter(function(r){return r.id===gid;}); if(!f.length) throw new Error('ไม่พบคำร้อง'); return f[0]; }
+  if(fn==='updateStatus'){ list.forEach(function(r){ if(r.id===arg.id) r.status=arg.status; }); localStorage.setItem(key,JSON.stringify(list)); return true; }
+  if(fn==='updateStaff'){ list.forEach(function(r){ if(r.id===arg.id) Object.assign(r,arg.staff); }); localStorage.setItem(key,JSON.stringify(list)); return true; }
+  if(fn==='exportBackup'){ var lines=[CSV_HEADERS_TH.join(',')]; list.forEach(function(r){ lines.push(CSV_HEADERS.map(function(k){ return csvEscape(r[k]); }).join(',')); }); return {filename:'cctv-backup-demo.csv', rows:list.length, csv:lines.join('\n')}; }
+  if(fn==='importRequests'){ var rows=arg.rows||[]; var v=validateImportRows(rows); if(v.errors.length) throw new Error('แถวที่ '+v.errors[0].row+': '+v.errors[0].msg); var upd=0,add=0; rows.forEach(function(r){ var ex=list.filter(function(x){return x.id===r.id;})[0]; if(ex){ Object.assign(ex,r); upd++; } else { if(!r.id) r.id='CCTV-'+todayISO().replace(/-/g,'')+'-'+String(list.length+1).padStart(3,'0'); if(!r.status) r.status='รอตรวจสอบ'; if(!r.requestDate) r.requestDate=todayISO(); list.push(r); add++; } }); localStorage.setItem(key,JSON.stringify(list)); return {updated:upd,added:add,total:rows.length}; }
+}
+function reqType(){ var r=document.querySelector('input[name="reqType"]:checked'); return r?r.value:'ภายนอก'; }
+function onReqTypeChange(){
+  var ext = reqType()==='ภายนอก';
+  document.getElementById('idCardHint').innerHTML = ext ? '<span class="req">*</span> (13 หลัก)' : '(ไม่บังคับ — ภายในไม่ต้องกรอก)';
+}
+// ---- สแกนบัตรประชาชน (v38): OCR บนเครื่องผู้ใช้เท่านั้น รูปไม่ขึ้นเซิร์ฟเวอร์ เลขบัตรอ่านด้วยโมเดลอังกฤษล้วน (เร็ว) + ชื่อรอบเดียวที่มุมที่เจอ + ทางช้าเดิมเป็นตัวสำรอง + โฮสต์ OCR ทั้งชุดเองที่เดียวกับหน้าเว็บ + อ่านเลขที่ 2000px ขาวดำล้วน + log [OCR] ทุกมุม + logger อยู่ใน createWorker เท่านั้น (ห้ามใส่ใน recognize — postMessage โคลน function ไม่ได้ พังทุกครั้งตั้งแต่ v25) + ชื่อยึดบรรทัด ชื่อตัวและชื่อสกุล เป็นหลัก (วิธีเดิมสแกนหา นาย ทั่วภาพ ไปเจอ นาย หลงจากบรรทัดอื่นแล้วเอาคำผิดมาเป็นชื่อ) ----
+var OCR_BASE='ocr'; // ไฟล์ OCR โฮสต์เองที่เดียวกับหน้าเว็บ (GitHub Pages)
+// กรอกแค่ 3 ช่อง: คำนำหน้า + ชื่อ-นามสกุล + เลขบัตร 13 หลัก ที่เหลือกรอกเองเหมือนเดิม
+function ocrCleanDigits(s){ return (s||'').replace(/[^\d]/g,''); }
+function ocrDeconfuse(s){ return (s||'').replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/S/g,'5'); }
+// เลขบัตรไทยมีเลขตรวจสอบตัวสุดท้าย: เอา checksum เป็นตัวตัดสิน ไม่เชื่อเลขที่ OCR อ่านมาเฉยๆ
+// (รหัสเลเซอร์ขอบบัตรก็เป็นตัวเลขยาวๆ ได้ ถ้าไม่มี checksum จะจับผิดตัว)
+function validThaiId(s){
+  if(!/^\d{13}$/.test(s)) return false;
+  var sum=0;
+  for(var i=0;i<12;i++) sum+= +s[i]*(13-i);
+  return (11-(sum%11))%10===+s[12];
+}
+function ocrExtractIdCard(text){
+  var t=ocrDeconfuse(text||'');
+  var cands=[], m;
+  // รูปแบบที่พิมพ์บนบัตร: 1 2345 67890 12 3 (เว้นวรรคเป็นกลุ่ม)
+  var re=/(\d)\s*(\d{4})\s*(\d{5})\s*(\d{2})\s*(\d)/g;
+  while((m=re.exec(t))!==null) cands.push(m.slice(1).join(''));
+  // เลขติดกัน 13 หลัก (OCR อาจอ่านเว้นวรรคหลุด)
+  var re2=/\d{13}/g;
+  while((m=re2.exec(t))!==null){ if(cands.indexOf(m[0])<0) cands.push(m[0]); }
+  // เลขที่ผ่าน checksum ก่อน — ถ้าไม่มีเลย ใช้ตัวแรกเป็นค่าให้ตรวจ (ไฮไลต์เหลืองไว้แล้ว)
+  for(var i=0;i<cands.length;i++){ if(validThaiId(cands[i])) return cands[i]; }
+  return cands.length?cands[0]:'';
+}
+function ocrExtractName(text){
+  var stop=/^(เลข|โทร|วันที่|ขอ|บริเวณ|แผนก|ที่อยู่|วัน|เดือน|ปี)/;
+  var lines=(text||'').split('\n'), i, m, words;
+  var titleFromEn={'Mr':'นาย','Mrs':'นาง','Miss':'นางสาว'}, title='';
+  for(i=0;i<lines.length;i++){ m=lines[i].match(/Name\s+(Mr|Mrs|Miss)\b/); if(m){title=titleFromEn[m[1]];break;} }
+  // หลัก (v38): ยึดบรรทัด "ชื่อตัวและชื่อสกุล" — ชื่อจริงอยู่บรรทัดนี้เสมอ
+  // วิธีเดิมสแกนหา นาย ทั่วทั้งภาพ ไปเจอ นาย หลงๆ จากบรรทัดอื่น (ที่อยู่/ด้านหลังบัตร) แล้วเอาคำผิดมาเป็นชื่อ
+  // ป้ายบรรทัดชื่อ OCR อ่านเพี้ยนได้ ("จื่อ..." แทน "ชื่อ...") เลยตัดด้วย "มี ชื่/ชื่อ/สกุล อยู่ในคำ" แทนขึ้นต้นด้วย
+  // และตัดคำที่มีตัวเลขออก (เลขบัตร/วันเกิดหลุดมาอยู่บรรทัดเดียวกันได้) แล้วเอาสองคำแรกที่เหลือเป็นชื่อ-นามสกุล
+  for(i=0;i<lines.length;i++){
+    if(!/ชื่/.test(lines[i])) continue;
+    words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){
+      return w.indexOf('ชื่')<0 && w.indexOf('ชื่อ')<0 && w.indexOf('สกุล')<0 && !/^(ตัว|และ)/.test(w) && !/[0-9๐-๙]/.test(w) && !stop.test(w);
+    });
+    var tIdx=-1;
+    for(var j=0;j<words.length;j++){ if(/^(นาย|นางสาว|นาง)$/.test(words[j])){ tIdx=j; break; } }
+    if(tIdx>=0){ if(!title) title=words[tIdx]; words.splice(tIdx,1); }
+    if(words.length>=2 && words[0].length>=2 && words[1].length>=2 && (words[0].length+words[1].length)>=8){
+      return {title:title,fullName:words.slice(0,2).join(' ')};
+    }
+    break;
+  }
+  // สำรอง: วิธีเดิม — สแกนหา นาย/นาง/นางสาว ทั่วทั้งภาพ
+  for(i=0;i<lines.length;i++){
+    m=lines[i].match(/(นาย|นางสาว|นาง)\s*([ก-๙a-zA-Z]+(?:\s+[ก-๙a-zA-Z]+)?)/);
+    if(!m) continue;
+    words=m[2].split(/\s+/).filter(function(w){return w&&!stop.test(w)&&!/\d/.test(w);});
+    if(words.length) return {title:m[1],fullName:words.slice(0,2).join(' ')};
+  }
+  // สำรองสุดท้าย: ชื่อจากบรรทัดชื่อแบบเดิม (สองคำท้าย)
+  for(i=0;i<lines.length;i++){
+    if(!/ชื่/.test(lines[i])) continue;
+    words=(lines[i].match(/[ก-๙]+/g)||[]).filter(function(w){return !/^(ชื่|ตัว|และ|สกุล)/.test(w)&&!stop.test(w);});
+    if(words.length>=2) return {title:title,fullName:words.slice(-2).join(' ')};
+  }
+  return {title:title,fullName:''};
+}
+function ocrLoadTesseract(cb,err){
+  if(window.Tesseract){ cb(); return; }
+  var s=document.createElement('script');
+  s.src=OCR_BASE+'/tesseract.min.js';
+  s.onload=function(){ cb(); }; s.onerror=function(){ err(); };
+  document.head.appendChild(s);
+}
+// ความคืบหน้า OCR (%) ต้องส่งผ่าน logger ของ createWorker เท่านั้น — tesseract.js v5 ส่ง recognize options ผ่าน postMessage ทั้งก้อน function โคลนไม่ได้ เกิด DataCloneError ทุกครั้งที่ recognize (เจอจาก Console ของพี 6 พ.ย. 13:39)
+function ocrLogger(m){ if(m.status==='recognizing text') ocrSetStep('กำลังอ่านบัตร… '+Math.round(m.progress*100)+'%'); }
+var ocrWorker=null, ocrWorkerPromise=null;
+function ocrGetWorker(){
+  if(ocrWorkerPromise) return ocrWorkerPromise;
+  ocrWorkerPromise=Tesseract.createWorker('tha+eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE,logger:ocrLogger}).then(function(w){ ocrWorker=w; return w; }).catch(function(e){ ocrWorkerPromise=null; throw e; });
+  return ocrWorkerPromise;
+}
+// ทางลัดอ่านเลขบัตร (v29): โมเดลอังกฤษล้วน + อ่านแค่ตัวเลข ย่อเหลือ 2000px ขาวดำล้วน (ไม่เพิ่มคอนทราสต์ — ฮอโลแกรม/แสงสะท้อนทำให้ตัวเลขจางลง)
+// โหลดโมเดล ~0.4 วินาที (ไทย+อังกฤษ ~15 วินาที) เลขบัตรมี checksum เป็นตัวตัดสินอยู่แล้ว เลยไม่ต้องใช้โมเดลไทยในรอบนี้
+var ocrIdWorker=null, ocrIdWorkerPromise=null;
+function ocrGetIdWorker(){
+  if(ocrIdWorkerPromise) return ocrIdWorkerPromise;
+  ocrIdWorkerPromise=Tesseract.createWorker('eng', undefined, {workerPath:OCR_BASE+'/worker.min.js',corePath:OCR_BASE,langPath:OCR_BASE,logger:ocrLogger}).then(function(w){
+    ocrIdWorker=w;
+    return w.setParameters({tessedit_char_whitelist:'0123456789 ',tessedit_pageseg_mode:'11'}).then(function(){ return w; });
+  }).catch(function(e){ ocrIdWorkerPromise=null; throw e; });
+  return ocrIdWorkerPromise;
+}
+// เตรียมภาพสำหรับรอบอ่านเลข: หมุน + ย่อให้ด้านยาวสุด 2000px + ขาวดำล้วน
+function ocrPrepIdCanvas(img,deg){
+  var maxSide=2000;
+  var s=Math.min(1,maxSide/Math.max(img.width,img.height));
+  var w=Math.round(img.width*s), h=Math.round(img.height*s);
+  var swap=(deg%180!==0);
+  var cv=document.createElement('canvas');
+  cv.width=swap?h:w; cv.height=swap?w:h;
+  var ctx=cv.getContext('2d');
+  ctx.translate(cv.width/2,cv.height/2);
+  ctx.rotate(deg*Math.PI/180);
+  ctx.filter='grayscale(1)';
+  ctx.drawImage(img,-w/2,-h/2,w,h);
+  return cv;
+}
+// เตรียม OCR ไว้ล่วงหน้าตั้งแต่เปิดหน้าเว็บ (โหลดเงียบๆ ไม่ขัดจอ) สแกนครั้งแรกจะได้ไม่ต้องรอโหลดโมเดล
+function ocrWarmup(){ ocrLoadTesseract(function(){ ocrGetWorker().catch(function(){}); ocrGetIdWorker().catch(function(){}); },function(){}); }
+setTimeout(ocrWarmup,1500);
+function ocrFill(id,value){
+  var el=document.getElementById(id); if(!el||!value) return false;
+  el.value=value; el.classList.add('ocr-hl');
+  el.addEventListener('input',function(){ el.classList.remove('ocr-hl'); },{once:true});
+  return true;
+}
+// สถานะ OCR แบบสดๆ: บอกขั้นตอน + วินาทีที่ผ่านไป จะได้รู้ว่าไม่ได้ค้าง
+var ocrTimer=null, ocrStart=0, ocrBase='';
+function ocrSetStep(t){
+  ocrBase=t;
+  var st=document.getElementById('ocrStatus'); if(!st) return;
+  var s=Math.floor((Date.now()-ocrStart)/1000);
+  st.textContent=t+' ('+s+' วินาที)';
+}
+function ocrStartClock(){
+  ocrStart=Date.now(); ocrStopClock();
+  ocrTimer=setInterval(function(){
+    var st=document.getElementById('ocrStatus'); if(!st) return;
+    var s=Math.floor((Date.now()-ocrStart)/1000);
+    st.textContent=ocrBase+' ('+s+' วินาที)';
+  },1000);
+}
+function ocrStopClock(){ if(ocrTimer){ clearInterval(ocrTimer); ocrTimer=null; } }
+// อ่านภาพพร้อม timeout กันค้าง: เกินเวลาที่กำหนดถือว่ารอบนั้นไม่ผ่าน ไปลองขั้นต่อไป
+function ocrRecognizeTimeout(worker,cv,ms){
+  return new Promise(function(resolve,reject){
+    var done=false;
+    var to=setTimeout(function(){ if(!done){ done=true; reject(new Error('timeout')); } },ms);
+    worker.recognize(cv).then(function(res){ if(!done){ done=true; clearTimeout(to); resolve(res); } }).catch(function(e){ if(!done){ done=true; clearTimeout(to); reject(e); } });
+  });
+}
+// หมุนภาพต้นฉบับก่อน แล้วค่อยย่อ/ขยายให้กว้าง targetW px (2200 = ละเอียด, 800 = หามุมเร็ว)
+function ocrPrepCanvas(img,deg,targetW){
+  targetW=targetW||2200;
+  var w=img.width, h=img.height;
+  var rot=document.createElement('canvas');
+  if(deg===90||deg===270){ rot.width=h; rot.height=w; } else { rot.width=w; rot.height=h; }
+  var rctx=rot.getContext('2d');
+  rctx.translate(rot.width/2,rot.height/2);
+  rctx.rotate(deg*Math.PI/180);
+  rctx.drawImage(img,-w/2,-h/2);
+  var scale=Math.min(3,targetW/rot.width);
+  if(scale===1) return rot;
+  var cv=document.createElement('canvas');
+  cv.width=Math.round(rot.width*scale); cv.height=Math.round(rot.height*scale);
+  cv.getContext('2d').drawImage(rot,0,0,cv.width,cv.height);
+  return cv;
+}
+function runOcr(input){
+  var f=input.files&&input.files[0]; if(!f) return;
+  var status=document.getElementById('ocrStatus');
+  ocrStartClock();
+  ocrSetStep('กำลังโหลดโมเดล OCR… (ครั้งแรกอาจใช้เวลา 10–20 วินาที)');
+  var img=new Image();
+  img.onload=function(){
+    ocrLoadTesseract(function(){
+      var degs=[0,90,180,270], fallbackId='';
+      function ocrDone(nm,id){
+        ocrStopClock();
+        var n=0;
+        if(nm.title){ document.getElementById('title').value=nm.title; document.getElementById('title').classList.add('ocr-hl'); n++; }
+        if(ocrFill('fullName',nm.fullName)) n++;
+        if(ocrFill('idCard',id)) n++;
+        onReqTypeChange();
+        status.textContent=n>0?('อ่านได้ '+n+' ช่อง — ตรวจให้ถูกก่อนกดบันทึกนะ'):('อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง');
+        input.value='';
+      }
+      function ocrFail(){
+        ocrStopClock();
+        if(fallbackId){ ocrDone({title:'',fullName:''},fallbackId); return; }
+        status.textContent='อ่านไม่เจอข้อมูล ลองถ่ายใหม่ให้ชัดๆ ตรงๆ ไม่เอียง';
+        input.value='';
+      }
+      // เฟส 0 (v27): อ่านเลขบัตรด้วยโมเดลอังกฤษล้วน (เร็ว) เจอเลขที่ผ่าน checksum เมื่อไหร่ไปอ่านชื่อที่มุมนั้นทันที
+      function idNext(idWorker,j){
+        var idDegs=[0,90,270,180];
+        if(j>=idDegs.length){ slowPath(); return; }
+        var deg=idDegs[j];
+        ocrSetStep('กำลังอ่านเลขบัตร… ('+deg+'°)');
+        var t0=performance.now();
+        ocrRecognizeTimeout(idWorker,ocrPrepIdCanvas(img,deg),60000).then(function(res){
+          var id=ocrExtractIdCard(res.data.text);
+          console.log('[OCR] angle='+deg+' '+Math.round(performance.now()-t0)+'ms conf='+Math.round(res.data.confidence)+' valid='+(id&&validThaiId(id)), JSON.stringify((res.data.text||'').slice(0,200)));
+          if(id&&validThaiId(id)){ namePass(deg,id); return; }
+          idNext(idWorker,j+1);
+        }).catch(function(){ idNext(idWorker,j+1); });
+      }
+      // รอบอ่านชื่อรอบเดียวที่มุมที่เจอเลข (โมเดลไทย+อังกฤษ 1100px)
+      function namePass(deg,id){
+        ocrGetWorker().then(function(worker){
+          ocrSetStep('กำลังอ่านชื่อ… (มุม '+deg+'°)');
+          return ocrRecognizeTimeout(worker,ocrPrepCanvas(img,deg,1100),60000);
+        }).then(function(res){
+          ocrDone(ocrExtractName(res.data.text),id);
+        }).catch(function(){ ocrDone({title:'',fullName:''},id); });
+      }
+      // ทางช้าเดิม (v26): หามุมด้วยภาพย่อ 800px ไทย+อังกฤษ แล้วอ่านละเอียด 2200px
+      function slowPath(){
+        ocrGetWorker().then(function(worker){
+          var scores=[];
+          function cheapNext(i){
+            if(i>=degs.length){
+              scores.sort(function(a,b){ return b.thai-a.thai; });
+              fullNext(0);
+              return;
+            }
+            var deg=degs[i];
+            ocrSetStep('กำลังหามุมภาพ… ('+deg+'°)');
+            ocrRecognizeTimeout(worker,ocrPrepCanvas(img,deg,800),60000).then(function(res){
+              var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text);
+              if((id&&validThaiId(id))||nm.fullName){ ocrDone(nm,id); return; }
+              if(id&&!fallbackId) fallbackId=id;
+              scores.push({deg:deg,thai:(res.data.text.match(/[ก-๙]/g)||[]).length});
+              cheapNext(i+1);
+            }).catch(function(){ scores.push({deg:deg,thai:0}); cheapNext(i+1); });
+          }
+          function fullNext(k){
+            if(k>=scores.length){ ocrFail(); return; }
+            var deg=scores[k].deg;
+            ocrSetStep('กำลังอ่านบัตรแบบละเอียด… (มุม '+deg+'°)');
+            ocrRecognizeTimeout(worker,ocrPrepCanvas(img,deg,2200),120000).then(function(res){
+              var nm=ocrExtractName(res.data.text), id=ocrExtractIdCard(res.data.text);
+              if((id&&validThaiId(id))||nm.fullName){ ocrDone(nm,id); }
+              else { if(id&&!fallbackId) fallbackId=id; fullNext(k+1); }
+            }).catch(function(){ fullNext(k+1); });
+          }
+          cheapNext(0);
+        }).catch(function(){ ocrStopClock(); status.textContent='อ่านบัตรไม่สำเร็จ ลองถ่ายใหม่หรือกรอกเองได้เลย'; input.value=''; });
+      }
+      ocrGetIdWorker().then(function(idWorker){ idNext(idWorker,0); }).catch(function(){ slowPath(); });
+    },function(){ ocrStopClock(); status.textContent='โหลด OCR ไม่ได้ (ตรวจเน็ต) กรอกเองได้เลย'; input.value=''; });
+  };
+  img.onerror=function(){ ocrStopClock(); status.textContent='เปิดรูปไม่ได้ ลองเลือกรูปใหม่'; input.value=''; };
+  img.src=URL.createObjectURL(f);
+}
+document.getElementById('reqForm').addEventListener('reset',function(){
+  ['title','fullName','idCard'].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('ocr-hl'); });
+  var st=document.getElementById('ocrStatus'); if(st) st.textContent='รูปไม่ถูกส่งขึ้นเซิร์ฟเวอร์ อ่านบนเครื่องนี้เท่านั้น';
+});
+function submitForm(e){
+  e.preventDefault();
+  var idCard=document.getElementById('idCard').value.replace(/\D/g,'');
+  var reqTypeVal=reqType();
+  if(reqTypeVal==='ภายนอก' && idCard.length!==13){ showMsg('formMsg','ภายนอกต้องกรอกเลขบัตรประชาชน 13 หลัก','err'); return false; }
+  if(reqTypeVal==='ภายใน' && idCard.length>0 && idCard.length!==13){ showMsg('formMsg','ถ้ากรอกเลขบัตรประชาชน ต้องมี 13 หลัก','err'); return false; }
+  if(document.getElementById('timeFrom').value >= document.getElementById('timeTo').value){ showMsg('formMsg','เวลาเริ่มต้องน้อยกว่าเวลาสิ้นสุด','err'); return false; }
+  var atts=[]; document.querySelectorAll('.att:checked').forEach(function(c){atts.push(c.value);});
+  var data={ requestDate:todayISO(), reqType:reqTypeVal, title:document.getElementById('title').value, fullName:document.getElementById('fullName').value.trim(),
+    idCard:idCard, phone:document.getElementById('phone').value.trim(), department:document.getElementById('department').value.trim(),
+    area:document.getElementById('area').value.trim(), location:document.getElementById('location').value.trim(),
+    footageDate:document.getElementById('footageDate').value, timeFrom:document.getElementById('timeFrom').value, timeTo:document.getElementById('timeTo').value,
+    reason:document.getElementById('reason').value.trim(), attachments:atts, otherAttachment:document.getElementById('otherAttachment').value.trim() };
+  server('saveRequest',data,function(res){
+    showMsg('formMsg','บันทึกแล้ว เลขที่คำร้อง: <b>'+res.id+'</b> — เปิดดูย้อนหลังได้จากเบราว์เซอร์นี้ 30 วัน (ดูที่ “ดูรายการย้อนหลัง”)','ok');
+    document.getElementById('reqForm').reset(); document.getElementById('footageDate').value=todayISO(); onReqTypeChange();
+    currentReqId=res.id;
+    printToken=res.printToken||'';
+    if(res.requesterKey) saveRequesterKey(res.id,res.requesterKey);
+    printReturn='form';
+    openPrint(res.id,function(){ showSaveModal(res.id); });
+  });
+  return false;
+}
+var currentReqId=null;
+function showMsg(id,html,cls){ var el=document.getElementById(id); el.className=cls; el.innerHTML=html; }
+function showSaveModal(id){ document.getElementById('savedReqId').textContent=id; document.getElementById('saveModal').style.display='flex'; }
+function closeSaveModal(){ document.getElementById('saveModal').style.display='none'; }
+function modalPrint(){ closeSaveModal(); window.print(); }
+function modalSavePdf(){ closeSaveModal(); downloadPdf(); }
+function loadList(){ server('listRequests',null,function(list){ allReqs=list; renderList(); },function(){ document.getElementById('listBox').textContent='โหลดรายการไม่ได้'; }); }
+// ---- requesterKey (v55): ผูกคำร้องกับ browser ที่ยื่น เปิดดูย้อนหลังได้ 30 วัน ----
+function requesterKeys(){ try{ return JSON.parse(localStorage.getItem('cctv_requester_keys')||'{}'); }catch(e){ return {}; } }
+function saveRequesterKey(id,key){ if(!id||!key) return; var m=requesterKeys(); m[id]=key; try{ localStorage.setItem('cctv_requester_keys', JSON.stringify(m)); }catch(e){} }
+function requesterKeyFor(id){ return requesterKeys()[id]||''; }
+function demoRequesterAgeDays(createdAt){
+  var s=String(createdAt||'');
+  var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return 9999;
+  var d0=Date.UTC(+m[1],+m[2]-1,+m[3]);
+  var now=new Date(); var bk=new Date(now.getTime()+7*3600*1000);
+  var d1=Date.UTC(bk.getUTCFullYear(),bk.getUTCMonth(),bk.getUTCDate());
+  return (d1-d0)/86400000;
+}
+// ---- ดูรายการย้อนหลัง (v33): อ่านอย่างเดียว ไม่ต้องล็อกอิน เปลี่ยนสถานะไม่ได้ ----
+var allPublicReqs=[];
+function loadPublicList(){ var keys=requesterKeys(); server('listPublic',{rkeys:JSON.stringify(keys)},function(list){ allPublicReqs=list; renderPublicList(); },function(){ document.getElementById('plistBox').textContent='โหลดรายการไม่ได้'; }); }
+function renderPublicList(){
+  var q=(document.getElementById('pq').value||'').toLowerCase();
+  var st=document.getElementById('pstatusFilter').value;
+  var rows=allPublicReqs.filter(function(r){
+    return (!st||r.status===st) && (!q||((r.fullName||'')+' '+(r.department||'')+' '+(r.area||'')+' '+(r.location||'')).toLowerCase().indexOf(q)>=0);
+  });
+  if(!rows.length){ document.getElementById('plistBox').innerHTML='<p>ยังไม่มีคำร้องที่ตรงกับที่ค้น</p>'; return; }
+  var h='<table><tr><th>เลขที่</th><th>วันที่ยื่น</th><th>ผู้ขอ</th><th>แผนก</th><th>พื้นที่ / บริเวณ</th><th>วันที่ภาพ</th><th>เวลา</th><th>สถานะ</th><th>เจ้าหน้าที่</th><th></th></tr>';
+  rows.forEach(function(r){
+    if(r.own){
+      h+='<tr><td data-label="เลขที่">'+esc(r.id)+'</td><td data-label="วันที่ยื่น">'+esc(beShort(r.requestDate))+'</td><td data-label="ผู้ขอ">'+esc(r.title+' '+r.fullName)+'</td><td data-label="แผนก">'+esc(r.department)+'</td><td data-label="พื้นที่ / บริเวณ">'+esc(r.area)+' / '+esc(r.location)+'</td><td data-label="วันที่ภาพ">'+esc(beShort(r.footageDate))+'</td><td data-label="เวลา">'+esc(timeStr(r.timeFrom))+'–'+esc(timeStr(r.timeTo))+' น.</td><td data-label="สถานะ">'+esc(r.status)+'</td><td data-label="เจ้าหน้าที่">'+(r.staffDone?'✅ กรอกแล้ว':'⏳ รอกรอก')+'</td><td><button class="printbtn" onclick="openPublicPrint(\''+r.id+'\')">ดู / ปริ้น</button></td></tr>';
+    } else {
+      h+='<tr><td data-label="เลขที่">'+esc(r.idMasked||'')+'</td><td data-label="วันที่ยื่น">'+esc(beShort(r.requestDate))+'</td><td data-label="ผู้ขอ">—</td><td data-label="แผนก">'+esc(r.department)+'</td><td data-label="พื้นที่ / บริเวณ">—</td><td data-label="วันที่ภาพ">—</td><td data-label="เวลา">—</td><td data-label="สถานะ">'+esc(r.status)+'</td><td data-label="เจ้าหน้าที่">—</td><td>🔒 ไม่มีสิทธิ์</td></tr>';
+    }
+  });
+  document.getElementById('plistBox').innerHTML=h+'</table>';
+}
+function loadDashboard(){
+  var f=document.getElementById('dashFrom'), t=document.getElementById('dashTo');
+  if(!f.value||!t.value){ var td=todayISO(); if(!f.value) f.value=td.slice(0,8)+'01'; if(!t.value) t.value=td; }
+  server('getDashboardStats',{from:f.value,to:t.value},function(s){ renderDashboard(s); },function(){ document.getElementById('dashBox').textContent='โหลดข้อมูลไม่ได้'; });
+}
+function dashChartSVG(daily){
+  var W=560,H=180,pl=34,pr=10,pt=14,pb=26;
+  var max=0; daily.forEach(function(d){ if(d.count>max) max=d.count; });
+  if(max===0) max=1;
+  var n=daily.length; if(!n) return '';
+  function X(i){ return n===1? pl+(W-pl-pr)/2 : pl+i*(W-pl-pr)/(n-1); }
+  function Y(c){ return pt+(H-pt-pb)*(1-c/max); }
+  var pts=daily.map(function(d,i){ return X(i).toFixed(1)+','+Y(d.count).toFixed(1); }).join(' ');
+  var dots=daily.map(function(d,i){ return '<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(d.count).toFixed(1)+'" r="3" fill="#4f46e5"/>'; }).join('');
+  var labels=''; daily.forEach(function(d,i){ if(i===0||i===n-1||i%7===0){ labels+='<text x="'+X(i).toFixed(1)+'" y="'+(H-6)+'" font-size="11" fill="#6b7280" text-anchor="middle">'+esc(d.date.slice(5))+'</text>'; } });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:560px" role="img"><polyline points="'+pts+'" fill="none" stroke="#4f46e5" stroke-width="2"/>'+dots+labels+'<text x="4" y="'+(Y(max)+4)+'" font-size="11" fill="#6b7280">'+max+'</text><text x="4" y="'+(H-pb+4)+'" font-size="11" fill="#6b7280">0</text></svg>';
+}
+function dashGoList(st){ showView('list'); document.getElementById('statusFilter').value=st||''; if(allReqs.length) renderList(); }
+function renderDashboard(s){
+  var box=document.getElementById('dashBox'); if(!box||!s) return;
+  var statuses=['รอตรวจสอบ','กำลังดำเนินการ','อนุมัติ','ปฏิเสธ'];
+  var stColors={'รอตรวจสอบ':'#d97706','กำลังดำเนินการ':'#4f46e5','อนุมัติ':'#16a34a','ปฏิเสธ':'#dc2626'};
+  var h='<div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0">';
+  h+='<div class="card" style="flex:1;min-width:140px;text-align:center"><div class="muted">คำร้องทั้งหมด</div><div style="font-size:28px;font-weight:700">'+s.total+'</div><div class="muted">ช่วง '+esc(beShort(s.from))+' – '+esc(beShort(s.to))+'</div></div>';
+  h+='<div class="card" style="flex:1;min-width:140px;text-align:center"><div class="muted">รอตรวจสอบ</div><div style="font-size:28px;font-weight:700;color:#d97706">'+(s.byStatus['รอตรวจสอบ']||0)+'</div><div class="muted">ต้องดำเนินการก่อน</div></div>';
+  h+='<div class="card" style="flex:1;min-width:140px;text-align:center"><div class="muted">อนุมัติ</div><div style="font-size:28px;font-weight:700;color:#16a34a">'+(s.byStatus['อนุมัติ']||0)+'</div><div class="muted">จากสถานะล่าสุด</div></div></div>';
+  h+='<h3>คำร้องรายวัน</h3>'+dashChartSVG(s.daily||[]);
+  h+='<h3>สถานะคำร้อง</h3>';
+  var maxSt=1; statuses.forEach(function(x){ if((s.byStatus[x]||0)>maxSt) maxSt=s.byStatus[x]; });
+  statuses.forEach(function(x){ var c=s.byStatus[x]||0; h+='<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="width:120px">'+esc(x)+'</span><div style="flex:1;background:#e5e7eb;border-radius:999px;height:10px"><div style="width:'+Math.round(c/maxSt*100)+'%;background:'+stColors[x]+';height:10px;border-radius:999px"></div></div><b>'+c+'</b></div>'; });
+  h+='<h3>พื้นที่ที่มีคำร้องมาก</h3><table><tr><th>พื้นที่ / บริเวณ</th><th>จำนวน</th></tr>';
+  (s.byArea||[]).forEach(function(a,i){ h+='<tr><td>'+(i+1)+' · '+esc(a.name)+'</td><td>'+a.count+'</td></tr>'; });
+  h+='</table><h3>แผนกที่ยื่นคำร้องมาก</h3><table><tr><th>แผนก</th><th>จำนวน</th></tr>';
+  (s.byDepartment||[]).forEach(function(d){ h+='<tr><td>'+esc(d.name)+'</td><td>'+d.count+'</td></tr>'; });
+  h+='</table><h3>รายการที่ต้องติดตาม</h3><div>';
+  h+='<button class="btn secondary" style="margin:4px 4px 4px 0" onclick="dashGoList(\'รอตรวจสอบ\')">ยังไม่รับเรื่อง: '+(s.pending.notReceived||0)+' ใบ</button>';
+  h+='<button class="btn secondary" style="margin:4px" onclick="dashGoList(\'กำลังดำเนินการ\')">กำลังดำเนินการ: '+(s.pending.inProgress||0)+' ใบ</button>';
+  h+='<button class="btn secondary" style="margin:4px" onclick="dashGoList(\'\')">รออนุมัติ: '+(s.pending.awaitingApproval||0)+' ใบ</button></div>';
+  h+='<h3>ระยะเวลาดำเนินการ</h3><p>'+(s.durations&&s.durations.n? 'รับเรื่อง → ดำเนินการ เฉลี่ย '+s.durations.avgDays+' วัน (จาก '+s.durations.n+' ใบที่มีวันที่ครบ)' : 'ยังไม่มีใบที่มีวันที่รับเรื่องและดำเนินการครบ')+'</p>';
+  h+='<h3>ผลตรวจ / ผลอนุมัติ</h3><p>ตรวจแล้วตรงตามคำร้องฯ '+(s.checker.match||0)+' ใบ · ไม่ตรงตามคำร้องฯ '+(s.checker.mismatch||0)+' ใบ · ยังไม่ตรวจ '+(s.checker.pending||0)+' ใบ</p>';
+  h+='<p>ผลอนุมัติมีแล้ว '+(s.approver.withResult||0)+' ใบ · ยังไม่มีผล '+(s.approver.withoutResult||0)+' ใบ</p>';
+  if(s.approver.top&&s.approver.top.length){ h+='<p>ผลอนุมัติที่พบบ่อย: '+s.approver.top.map(function(t){ return esc(t.value)+' ('+t.count+')'; }).join(' · ')+'</p>'; }
+  h+='<p class="muted">Dashboard แสดงเฉพาะตัวเลขสรุป — เปิดดูรายละเอียดใบคำร้องได้จากรายการหลังบ้านตามสิทธิ์เจ้าหน้าที่</p>';
+  box.innerHTML=h;
+}
+function openPublicPrint(id){ printReturn='public'; openPrint(id); }
+function renderList(){
+  var q=(document.getElementById('q').value||'').toLowerCase();
+  var st=document.getElementById('statusFilter').value;
+  var rows=allReqs.filter(function(r){
+    return (!st||r.status===st) && (!q||(r.fullName+' '+r.department+' '+r.area+' '+r.location).toLowerCase().indexOf(q)>=0);
+  });
+  if(!rows.length){ document.getElementById('listBox').innerHTML='<p>ยังไม่มีคำร้องที่ตรงกับที่ค้น</p>'; return; }
+  var h='<table><tr><th>เลขที่</th><th>วันที่ยื่น</th><th>ผู้ขอ</th><th>แผนก</th><th>พื้นที่ / บริเวณ</th><th>วันที่ภาพ</th><th>เวลา</th><th>สถานะ</th><th>เจ้าหน้าที่</th><th></th></tr>';
+  rows.forEach(function(r){
+    h+='<tr><td data-label="เลขที่">'+esc(r.id)+'</td><td data-label="วันที่ยื่น">'+esc(beShort(r.requestDate))+'</td><td data-label="ผู้ขอ">'+esc(r.title+' '+r.fullName)+'</td><td data-label="แผนก">'+esc(r.department)+'</td><td data-label="พื้นที่ / บริเวณ">'+esc(r.area)+' / '+esc(r.location)+'</td><td data-label="วันที่ภาพ">'+esc(beShort(r.footageDate))+'</td><td data-label="เวลา">'+esc(timeStr(r.timeFrom))+'–'+esc(timeStr(r.timeTo))+' น.</td><td data-label="สถานะ"><select class="st" onchange="changeStatus(\''+r.id+'\',this.value)"><option'+(r.status==='รอตรวจสอบ'?' selected':'')+'>รอตรวจสอบ</option><option'+(r.status==='กำลังดำเนินการ'?' selected':'')+'>กำลังดำเนินการ</option><option'+(r.status==='อนุมัติ'?' selected':'')+'>อนุมัติ</option><option'+(r.status==='ปฏิเสธ'?' selected':'')+'>ปฏิเสธ</option></select></td><td data-label="เจ้าหน้าที่">'+(r.staffDone?'✅ กรอกแล้ว':'⏳ รอกรอก')+'</td><td><button class="printbtn" onclick="openStaff(\''+r.id+'\')">เจ้าหน้าที่</button> <button class="printbtn" onclick="openPrint(\''+r.id+'\')">ดู / ปริ้น</button></td></tr>';
+  });
+  document.getElementById('listBox').innerHTML=h+'</table>';
+}
+function changeStatus(id,status){ server('updateStatus',{id:id,status:status},function(){ loadList(); }); }
+var staffId=null;
+function openStaff(id){
+  server('getRequest',id,function(r){
+    staffId=id; showView('staff');
+    document.getElementById('staffFor').textContent='คำร้องเลขที่ '+r.id+' — '+(r.title||'')+' '+r.fullName+' · ภาพวันที่ '+beShort(r.footageDate)+' เวลา '+timeStr(r.timeFrom)+'–'+timeStr(r.timeTo)+' น.';
+    document.getElementById('staffReceivedDate').value=r.staffReceivedDate||'';
+    document.getElementById('staffProcessedDate').value=r.staffProcessedDate||'';
+    document.getElementById('staffOperatorName').value=r.staffOperatorName||'';
+    document.getElementById('checkerMatch').value=r.checkerMatch||'';
+    document.getElementById('checkerRejectReason').value=r.checkerRejectReason||'';
+    document.getElementById('checkerName').value=r.checkerName||'';
+    document.getElementById('approverResult').value=r.approverResult||'';
+    document.getElementById('approverRejectReason').value=r.approverRejectReason||'';
+    document.getElementById('approverName').value=r.approverName||'';
+  });
+}
+function saveStaff(e){
+  e.preventDefault();
+  var staff={ staffReceivedDate:document.getElementById('staffReceivedDate').value, staffProcessedDate:document.getElementById('staffProcessedDate').value,
+    staffOperatorName:document.getElementById('staffOperatorName').value.trim(), checkerMatch:document.getElementById('checkerMatch').value,
+    checkerRejectReason:document.getElementById('checkerRejectReason').value.trim(), checkerName:document.getElementById('checkerName').value.trim(),
+    approverResult:document.getElementById('approverResult').value.trim(), approverRejectReason:document.getElementById('approverRejectReason').value.trim(),
+    approverName:document.getElementById('approverName').value.trim() };
+  server('updateStaff',{id:staffId,staff:staff},function(){
+    showMsg('staffMsg','บันทึกส่วนเจ้าหน้าที่แล้ว — กด “ดู / ปริ้น” จากรายการเพื่อปริ้นฟอร์มที่กรอกครบ','ok');
+    setTimeout(function(){ openPrint(staffId); }, 600);
+  });
+  return false;
+}
+var printReturn='form';
+function openPrint(id,cb,err){
+  // ล็อกอินแล้วใช้ getRequest (มี token) ไม่ล็อกอินใช้ getPublicRequest (ดู/ปริ้นย้อนหลัง)
+  if(staffToken) printReturn='list';
+  if(staffToken) server('getRequest',{id:id,printToken:printToken},function(r){ renderPrint(r,cb); },err);
+  else server('getPublicRequest',{id:id,rkey:requesterKeyFor(id),printToken:printToken},function(r){ renderPrint(r,cb); },err||function(m){ if(m==='unauthorized') alert('ไม่มีสิทธิ์เปิดใบนี้ — เปิดได้เฉพาะจากเบราว์เซอร์ที่ยื่นคำร้อง (ภายใน 30 วัน) หรือล็อกอินเป็นเจ้าหน้าที่'); else alert(m); });
+}
+function renderPrint(r,cb){
+    currentReq=r; showView('form'); // ซ่อนฟอร์มชั่วคราว แล้วแสดงเฉพาะหน้าปริ้น
+    // hash routing: URL ชี้ใบที่เปิดอยู่ ก็อปปี้ลิงก์ไปเปิดที่ไหนก็ถูกใบ
+    if (typeof window !== 'undefined' && window.location && window.location.hash !== '#' + r.id) window.location.hash = '#' + r.id;
+    document.getElementById('viewForm').style.display='none';
+    document.getElementById('printActions').style.display='block';
+    var atts=['สำเนาบัตรประจำตัวประชาชน','หมายศาล','หนังสือที่ออกจากหน่วยงานราชการ','รายงานประจำวันแจ้งเป็นหลักฐาน'];
+    var attList=(Array.isArray(r.attachments)?r.attachments:(r.attachments||'').split(',')).map(function(s){return s.trim();}).filter(Boolean);
+    var attHtml=atts.map(function(a){return (attList.indexOf(a)>=0?'☑ ':'☐ ')+a+' ';}).join('');
+    var rd=splitDate(r.requestDate), fd=splitDate(r.footageDate);
+    var otherBox=(attList.indexOf('อื่นๆ')>=0?'☑':'☐');
+    var attList=(Array.isArray(r.attachments)?r.attachments:(r.attachments||'').split(',')).map(function(s){return s.trim();}).filter(Boolean);
+    var rd=splitDate(r.requestDate), fd=splitDate(r.footageDate);
+    var h='<img class="ovl-bg" src="'+FORM_BG_URL+'" alt="">';
+    h+=ovl(124.0,40.1,esc(rd.d))+ovl(147.7,40.1,esc(rd.m))+ovl(174.4,40.1,esc(rd.y));
+    h+=ovl(88.3,52.0,esc(r.fullName))+ovl(163.0,52.0,esc(fmtId(r.idCard)));
+    // วงกลมคำนำหน้า: ใช้ TITLE_CIRCLE_MAP (พิกัดเดียวกับที่วาดลง PDF)
+    var titleCircle=TITLE_CIRCLE_MAP[r.title];
+    if(titleCircle) h+='<div class="ovl circle" style="left:'+titleCircle[0]+'mm;top:55.4mm;width:'+titleCircle[1]+'mm;height:7mm"></div>';
+    h+=ovl(116.9,58.7,esc(r.phone));
+    h+=ovl(108.7,65.4,esc(r.department));
+    h+=ovl(71.4,78.7,esc(r.area))+ovl(150.0,78.7,esc(r.location));
+    h+=ovl(40.3,85.4,esc(fd.d))+ovl(65.7,85.4,esc(fd.m))+ovl(89.0,85.4,esc(fd.y))+ovl(124.6,85.4,esc(timeStr(r.timeFrom)))+ovl(166.4,85.4,esc(timeStr(r.timeTo)));
+    h+=ovlL(53.0,92.0,131.0,esc(r.reason));
+    var atts=['สำเนาบัตรประจำตัวประชาชน','หมายศาล','หนังสือที่ออกจากหน่วยงานราชการ','รายงานประจำวันแจ้งเป็นหลักฐาน'];
+    var chkXY=[[26.8,122.0],[71.4,122.0],[89.6,122.1],[142.0,122.0]];
+    atts.forEach(function(a,i){ if(attList.indexOf(a)>=0) h+=chk(chkXY[i][0],chkXY[i][1]); });
+    if(attList.indexOf('อื่นๆ')>=0) h+=chk(26.8,128.8);
+    h+=ovl(117.0,125.4,esc(r.otherAttachment));
+    h+=ovl(59.3,171.1,esc(r.title+' '+r.fullName));
+    h+=ovlSm(63.7,198.5,esc(r.staffReceivedDate?beShort(r.staffReceivedDate):''));
+    h+=ovlSm(61.1,204.3,esc(r.staffProcessedDate?beShort(r.staffProcessedDate):''));
+    if(r.checkerMatch==='ตรงตามคำร้องฯ') h+=chk(82.2,201.2);
+    if(r.checkerMatch==='ไม่ตรงตามคำร้องฯ') h+=chk(82.0,207.1);
+    h+=ovlBox(104.0,210.0,25.2,esc(r.checkerRejectReason));
+    h+=ovlBox(150.3,198.1,31.5,esc(r.approverResult));
+    h+=ovlBox(156.5,209.5,25.2,esc(r.approverRejectReason));
+    h+=ovlSm(52.5,232.9,esc(r.staffOperatorName||''));
+    h+=ovlSm(105.0,232.9,esc(r.checkerName||''));
+    h+=ovlSm(157.6,233.4,esc(r.approverName||''));
+    document.getElementById('printSheet').innerHTML=h;
+    window.scrollTo(0,0);
+    if(cb) cb();
+}
+// ---- สำรองข้อมูล / นำเข้า .csv (v54, หลังบ้านเท่านั้น) ----
+var CSV_HEADERS = ['id','requestDate','title','fullName','idCard','phone','department','area','location','footageDate','timeFrom','timeTo','reason','attachments','otherAttachment','status','createdAt','staffReceivedDate','staffProcessedDate','staffOperatorName','checkerMatch','checkerRejectReason','checkerName','approverResult','approverRejectReason','approverName','reqType'];
+var CSV_HEADERS_TH = ['เลขที่คำร้อง','วันที่ยื่นคำร้อง','คำนำหน้า','ชื่อ-นามสกุล','เลขบัตรประชาชน','เบอร์โทรศัพท์','แผนก','พื้นที่','บริเวณ','วันที่ภาพที่ขอ','เวลาเริ่มต้น','เวลาสิ้นสุด','เหตุผล','ไฟล์แนบ','ไฟล์แนบอื่น ๆ','สถานะ','เวลาที่สร้าง','วันที่เจ้าหน้าที่รับเรื่อง','วันที่เจ้าหน้าที่ดำเนินการ','ชื่อเจ้าหน้าที่ผู้ดำเนินการ','ผลการตรวจสอบ','เหตุผลที่ผู้ตรวจสอบปฏิเสธ','ชื่อผู้ตรวจสอบ','ผลการอนุมัติ','เหตุผลที่ผู้อนุมัติปฏิเสธ','ชื่อผู้อนุมัติ','ประเภทผู้ขอ'];
+function csvEscape(v){
+  var s = (v === null || v === undefined) ? '' : String(v);
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function downloadCsvFile(filename, text){
+  var blob = new Blob(['\ufeff' + text], {type: 'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  if (URL.revokeObjectURL) URL.revokeObjectURL(a.href);
+}
+function downloadTemplate(){
+  downloadCsvFile('cctv-template.csv', CSV_HEADERS_TH.join(',') + '\n');
+}
+function exportBackup(){
+  var st = document.getElementById('exportStatus'); st.textContent = 'กำลังเตรียมไฟล์...';
+  server('exportBackup', {}, function(d){
+    downloadCsvFile(d.filename, d.csv);
+    st.textContent = 'ดาวน์โหลดแล้ว: ' + d.filename + ' (' + d.rows + ' คำร้อง)';
+  }, function(m){ st.textContent = 'ดาวน์โหลดไม่สำเร็จ: ' + m; });
+}
+function parseCsv(text){
+  text = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  var rows = [], row = [], field = '', inQ = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"' && field === '') { inQ = true; }
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; }
+    else field += c;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+function validateImportRows(rows){
+  var errors = [], valid = [], seenIds = {};
+  var statuses = ['รอตรวจสอบ', 'กำลังดำเนินการ', 'อนุมัติ', 'ปฏิเสธ'];
+  var req = ['fullName','department','area','location','footageDate','timeFrom','timeTo','reason'];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i], line = i + 2;
+    var id = String(r.id || '').trim();
+    if (id && !/^CCTV-\d{8}-\d{3}$/.test(id)) { errors.push({row: line, msg: 'เลขที่คำร้องไม่ถูกต้อง: ' + id}); continue; }
+    if (id) { if (seenIds[id]) { errors.push({row: line, msg: 'เลขที่คำร้องซ้ำในไฟล์: ' + id}); continue; } seenIds[id] = true; }
+    var missing = '';
+    for (var j = 0; j < req.length; j++) if (!String(r[req[j]] || '').trim()) { missing = req[j]; break; }
+    if (missing) { errors.push({row: line, msg: 'ช่องที่จำเป็นว่าง: ' + missing}); continue; }
+    var st = String(r.status || '').trim();
+    if (st && statuses.indexOf(st) === -1) { errors.push({row: line, msg: 'สถานะไม่ถูกต้อง: ' + st}); continue; }
+    var rt = String(r.reqType || '').trim();
+    if (rt && rt !== 'ภายใน' && rt !== 'ภายนอก') { errors.push({row: line, msg: 'ประเภทผู้ขอไม่ถูกต้อง: ' + rt}); continue; }
+    var idc = String(r.idCard || '').replace(/\D/g, '');
+    if (idc && idc.length !== 13) { errors.push({row: line, msg: 'เลขบัตรประชาชนต้อง 13 หลัก'}); continue; }
+    var badDate = '';
+    ['requestDate','footageDate','createdAt','staffReceivedDate','staffProcessedDate'].forEach(function(k){
+      var d = String(r[k] || '').trim();
+      if (d && !/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/.test(d)) badDate = k;
+    });
+    if (badDate) { errors.push({row: line, msg: 'รูปแบบวันที่ไม่ถูกต้อง (' + badDate + ')'}); continue; }
+    var badTime = '';
+    ['timeFrom','timeTo'].forEach(function(k){
+      var t = String(r[k] || '').trim();
+      if (t && !/^\d{2}:\d{2}$/.test(t)) badTime = k;
+    });
+    if (badTime) { errors.push({row: line, msg: 'รูปแบบเวลาไม่ถูกต้อง (' + badTime + ')'}); continue; }
+    valid.push(r);
+  }
+  return { errors: errors, valid: valid };
+}
+function rowsFromCsv(text){
+  var parsed = parseCsv(text);
+  var data = parsed.filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+  if (!data.length) return { error: 'ไฟล์ว่างเปล่า' };
+  var header = data[0].map(function(c){ return String(c).trim(); });
+  // ไฟล์เก่า 26 คอลัมน์ (ไม่มีประเภทผู้ขอ) ยังนำเข้าได้ — reqType จะว่าง
+  var legacyHeader = CSV_HEADERS_TH.slice(0, -1).join(',');
+  if (header.join(',') !== CSV_HEADERS_TH.join(',') && header.join(',') !== legacyHeader) return { error: 'หัวคอลัมน์ไม่ตรงกับแม่แบบ (ต้องมี ' + CSV_HEADERS_TH.length + ' คอลัมน์ตามลำดับเดียวกับแม่แบบ หรือ 26 คอลัมน์แบบเก่า)' };
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var o = {};
+    for (var j = 0; j < CSV_HEADERS.length; j++) o[CSV_HEADERS[j]] = (data[i][j] === undefined) ? '' : data[i][j];
+    rows.push(o);
+  }
+  return { rows: rows };
+}
+var importPendingRows = null;
+function previewImport(csvText){
+  var pv = document.getElementById('importPreview'), msg = document.getElementById('importMsg');
+  var btn = document.getElementById('btnDoImport');
+  msg.textContent = ''; btn.disabled = true; importPendingRows = null;
+  function run(text){
+    var conv = rowsFromCsv(text);
+    if (conv.error) { pv.textContent = 'ตรวจไม่ผ่าน: ' + conv.error; return; }
+    if (!conv.rows.length) { pv.textContent = 'ตรวจไม่ผ่าน: ไม่มีแถวข้อมูล'; return; }
+    var res = validateImportRows(conv.rows);
+    var newCount = conv.rows.filter(function(r){ return !String(r.id || '').trim(); }).length;
+    var updCount = conv.rows.length - newCount;
+    var html = 'พบ ' + conv.rows.length + ' แถว — ใบใหม่ ' + newCount + ' ใบ, อัปเดตใบเดิม ' + updCount + ' ใบ';
+    if (res.errors.length) {
+      html += ' — มีข้อผิดพลาด ' + res.errors.length + ' แถว: ' + res.errors.slice(0, 5).map(function(e){ return 'แถวที่ ' + e.row + ' ' + e.msg; }).join('; ');
+      pv.textContent = html;
+      return;
+    }
+    pv.textContent = html + ' — ตรวจผ่านแล้ว กด "นำเข้าข้อมูล" ได้เลย';
+    importPendingRows = res.valid;
+    btn.disabled = false;
+  }
+  if (typeof csvText === 'string') { run(csvText); return; }
+  var f = document.getElementById('importFile').files;
+  if (!f || !f.length) { pv.textContent = 'กรุณาเลือกไฟล์ .csv ก่อน'; return; }
+  var rd = new FileReader();
+  rd.onload = function(){ run(rd.result); };
+  rd.onerror = function(){ pv.textContent = 'อ่านไฟล์ไม่ได้'; };
+  rd.readAsText(f[0], 'UTF-8');
+}
+function doImport(){
+  var msg = document.getElementById('importMsg');
+  if (!importPendingRows || !importPendingRows.length) { msg.textContent = 'ไม่มีข้อมูลที่ตรวจผ่านแล้ว — กด "ตรวจสอบไฟล์" ก่อน'; return; }
+  var rows = importPendingRows.slice();
+  var CHUNK = 5, idx = 0, upd = 0, add = 0;
+  msg.textContent = 'กำลังนำเข้า...';
+  function next(){
+    if (idx >= rows.length) {
+      msg.textContent = 'นำเข้าสำเร็จ: อัปเดต ' + upd + ' ใบ, เพิ่มใหม่ ' + add + ' ใบ (รวม ' + rows.length + ' แถว)';
+      importPendingRows = null; document.getElementById('btnDoImport').disabled = true;
+      return;
+    }
+    var chunk = rows.slice(idx, idx + CHUNK); idx += CHUNK;
+    server('importRequests', {rows: chunk}, function(d){
+      upd += d.updated; add += d.added; next();
+    }, function(m){ msg.textContent = 'นำเข้าหยุดที่แถว ~' + idx + ': ' + m + ' (แถวก่อนหน้านี้บันทึกแล้ว ให้นำเข้าเฉพาะแถวที่เหลือใหม่)'; });
+  }
+  next();
+}
+// hash routing: #list เปิดรายการย้อนหลัง, #staff เปิดรายการหลังบ้าน (ต้องล็อกอิน),
+// #CCTV-YYYYMMDD-### เปิดใบนั้น, #form/#login/#settings/#users เปิด view นั้น
+function routeFromHash(){
+  var h = (typeof window !== 'undefined' && window.location && window.location.hash) || '';
+  if (h === '#list' || h === '#public') { showView('public'); return true; }
+  if (h === '#staff') { showView('list'); return true; }
+  if (h === '#form') { showView('form'); return true; }
+  if (h === '#login') { showView('login'); return true; }
+  if (h === '#settings') { showView('settings'); return true; }
+  if (h === '#users') { showView('users'); return true; }
+  if (h === '#backup') { showView('backup'); return true; }
+  if (h === '#dashboard') { showView('dashboard'); return true; }
+  if (h === '') return false;
+  var m = h.match(/^#(CCTV-\d{8}-\d{3})$/);
+  if (!m) return false;
+  if (currentReq && currentReq.id === m[1]) return true; // เปิดใบนี้อยู่แล้ว ไม่โหลดซ้ำ
+  printReturn = 'public';
+  openPrint(m[1], null, function (e) { if (e === 'unauthorized') { showView('form'); showMsg('formMsg', 'ไม่มีสิทธิ์เปิดใบนี้ — เปิดได้เฉพาะจากเบราว์เซอร์ที่ยื่นคำร้อง (ภายใน 30 วัน) หรือล็อกอินเป็นเจ้าหน้าที่', 'err'); } });
+  return true;
+}
+if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('hashchange', routeFromHash);
+routeFromHash();
+</script>
+</body>
+</html>
