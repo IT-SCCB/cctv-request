@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!-- CCTV-CAMERA-TEST v1 -->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ทดสอบกล้องใน LINE — CCTV</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef2ff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#1e1b4b;padding:14px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:20px;margin:4px 0 2px}
+  .sub{color:#555;margin:0 0 14px;font-size:14px}
+  .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  h2{font-size:16px;margin:0 0 8px;color:#3730a3}
+  .row{font-size:14px;margin:6px 0;word-break:break-word}
+  .lbl{font-weight:700}
+  .res{font-size:14px;margin:6px 0;padding:8px 10px;border-radius:8px;background:#f1f5f9;word-break:break-word}
+  .res.ok{background:#dcfce7;color:#14532d}
+  .res.bad{background:#fee2e2;color:#7f1d1d}
+  button{font-size:16px;padding:12px 16px;border:0;border-radius:10px;background:#4f46e5;color:#fff;cursor:pointer;width:100%;margin:6px 0}
+  button.secondary{background:#64748b}
+  button:disabled{background:#a5b4fc}
+  input[type=file]{font-size:16px;width:100%;margin:6px 0;padding:10px;border:2px dashed #a5b4fc;border-radius:10px;background:#f8fafc}
+  video{width:100%;border-radius:10px;background:#000;margin-top:8px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;min-height:80px}
+  ol{font-size:14px;line-height:1.7;margin:6px 0;padding-left:22px}
+  .note{font-size:13px;color:#555}
+  .tag{display:inline-block;font-size:12px;background:#e0e7ff;color:#3730a3;border-radius:6px;padding:2px 8px;margin-right:4px}
+  code{word-break:break-all;background:#f1f5f9;padding:1px 5px;border-radius:5px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📷 ทดสอบกล้องใน LINE</h1>
+  <p class="sub">หน้าทดสอบสำหรับฟอร์มขอดูภาพ CCTV — ไม่ส่งรูปหรือข้อมูลไปไหนทั้งนั้น ทุกอย่างเกิดบนเครื่องนี้เท่านั้น</p>
+
+  <div class="card">
+    <h2>วิธีทดสอบ</h2>
+    <ol>
+      <li>เปิดหน้านี้ในแชท LINE (เบราว์เซอร์ใน LINE)</li>
+      <li>กด <b>รันวินิจฉัยกล้อง</b> แล้วดูผล</li>
+      <li>แตะช่องเลือกไฟล์ <b>A1–A5 ทีละตัว</b> จดว่าแต่ละตัวเปิดอะไรขึ้นมา (กล้อง / ตัวเลือกไฟล์เก่าที่มีกล้อง / Photo Picker อย่างเดียว)</li>
+      <li>กด <b>คัดลอกผลทั้งหมด</b> แล้ววางส่งกลับมาในแชต</li>
+      <li>ทำซ้ำแบบเดียวกันใน Chrome (เปิดลิงก์เดียวกันใน Chrome) เพื่อเทียบผล</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>0. ข้อมูลเครื่อง</h2>
+    <div class="row"><span class="lbl">User-Agent:</span> <span id="envUa">…</span></div>
+    <div class="res" id="envLine">…</div>
+    <div class="res" id="envMd">…</div>
+    <div class="res" id="envGm">…</div>
+    <div class="res" id="envLiff">…</div>
+  </div>
+
+  <div class="card">
+    <h2>1. วินิจฉัย getUserMedia</h2>
+    <p class="note">กดแล้วรอไม่เกิน 8 วินาที — ถ้ากล้องเปิดได้จะมีภาพตัวอย่างขึ้นมา ถ้าไม่ได้จะบอกชื่อ error ตรงๆ</p>
+    <button id="btnDiag">▶ รันวินิจฉัยกล้อง</button>
+    <video id="preview" autoplay playsinline muted style="display:none"></video>
+    <button id="btnStop" class="secondary" style="display:none">■ หยุดกล้อง</button>
+    <div class="res" id="diagRes">ยังไม่ได้รัน</div>
+  </div>
+
+  <div class="card">
+    <h2>2. ตัวแปร input — แตะทีละตัว</h2>
+
+    <div class="row"><span class="tag">A1</span><span class="lbl">plain — ไม่มี accept / capture</span></div>
+    <input type="file" id="inA1">
+    <div class="res" id="resA1">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A2</span><span class="lbl">accept="image/*,android/allowCamera"</span></div>
+    <input type="file" id="inA2" accept="image/*,android/allowCamera">
+    <div class="res" id="resA2">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A3</span><span class="lbl">accept="image/*,application/pdf"</span></div>
+    <input type="file" id="inA3" accept="image/*,application/pdf">
+    <div class="res" id="resA3">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A4a</span><span class="lbl">accept="image/*" capture="camera"</span></div>
+    <input type="file" id="inA4a" accept="image/*" capture="camera">
+    <div class="res" id="resA4a">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A4b</span><span class="lbl">accept="image/*" capture (ไม่มีค่า)</span></div>
+    <input type="file" id="inA4b" accept="image/*" capture>
+    <div class="res" id="resA4b">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A5 ถ่ายใหม่</span><span class="lbl">accept="image/*" capture="environment"</span></div>
+    <input type="file" id="inA5a" accept="image/*" capture="environment">
+    <div class="res" id="resA5a">ยังไม่ได้แตะ</div>
+
+    <div class="row"><span class="tag">A5 เลือกจากคลัง</span><span class="lbl">accept="image/*" (ไม่มี capture)</span></div>
+    <input type="file" id="inA5b" accept="image/*">
+    <div class="res" id="resA5b">ยังไม่ได้แตะ</div>
+  </div>
+
+  <div class="card">
+    <h2>3. บันทึกผล</h2>
+    <pre id="log"></pre>
+    <button id="btnCopy">📋 คัดลอกผลทั้งหมด</button>
+    <div class="res" id="copyRes">กดแล้ววางในแชตส่งกลับมาได้เลย</div>
+  </div>
+
+  <div class="card">
+    <h2>4. เปิดหน้านี้ใน Chrome Custom Tab</h2>
+    <p class="note">คัดลอกลิงก์นี้ไปวางในแชท LINE แล้วแตะจากแชท (แตะลิงก์จากในหน้านี้ตรงๆ อาจไม่เปลี่ยนเป็น Custom Tab):</p>
+    <div class="res" id="cctLink">…</div>
+    <button id="btnCopyCct" class="secondary">คัดลอกลิงก์ Custom Tab</button>
+  </div>
+
+  <p class="note" style="text-align:center">CCTV-CAMERA-TEST v1 — ทดสอบเฉพาะกล้อง ไม่บันทึก ไม่ส่งรูปออกนอกเครื่อง</p>
+</div>
+
+<script>
+(function(){
+  var logPre = document.getElementById('log');
+  function stamp(){ var d = new Date(); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2); }
+  function log(msg){ logPre.textContent += '[' + stamp() + '] ' + msg + '\n'; logPre.scrollTop = logPre.scrollHeight; }
+  function setRes(id, text, ok){
+    var el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'res' + (ok === true ? ' ok' : ok === false ? ' bad' : '');
+  }
+
+  // ---- 0. ข้อมูลเครื่อง ----
+  var ua = navigator.userAgent || '(ไม่มี UA)';
+  document.getElementById('envUa').textContent = ua;
+  var isLine = /Line\//i.test(ua);
+  setRes('envLine', isLine ? 'เปิดใน LINE (พบ Line/ ใน UA)' : 'ไม่ได้เปิดใน LINE (ไม่พบ Line/ ใน UA)', isLine);
+  var hasMd = !!navigator.mediaDevices;
+  setRes('envMd', hasMd ? 'มี navigator.mediaDevices' : 'ไม่มี navigator.mediaDevices (!!)', hasMd);
+  var hasGm = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  setRes('envGm', hasGm ? 'มี getUserMedia' : 'ไม่มี getUserMedia (!!)', hasGm);
+  log('เปิดหน้า: ' + (isLine ? 'LINE in-app browser' : 'เบราว์เซอร์อื่น') + ' | mediaDevices=' + hasMd + ' getUserMedia=' + hasGm);
+
+  // ---- LIFF (ถ้ามี ?liffId= ใน URL) ----
+  var params = new URLSearchParams(location.search);
+  var liffId = params.get('liffId');
+  if (liffId) {
+    setRes('envLiff', 'กำลังโหลด LIFF SDK… (liffId=' + liffId + ')');
+    var s = document.createElement('script');
+    s.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+    s.onload = function(){
+      liff.init({ liffId: liffId }).then(function(){
+        var ctx = {};
+        try { ctx = liff.getContext() || {}; } catch(e){}
+        var msg = 'LIFF: isInClient=' + liff.isInClient() + ' | type=' + (ctx.type || '?') + ' | os=' + (liff.getOS() || '?') + ' | LIFF ver=' + (liff.getVersion() || '?');
+        setRes('envLiff', msg, liff.isInClient());
+        log(msg);
+      }).catch(function(e){
+        setRes('envLiff', 'LIFF init ล้มเหลว: ' + (e && e.message ? e.message : e), false);
+        log('LIFF init ล้มเหลว: ' + (e && e.message ? e.message : e));
+      });
+    };
+    s.onerror = function(){ setRes('envLiff', 'โหลด LIFF SDK ไม่ได้ (ออฟไลน์?)', false); };
+    document.head.appendChild(s);
+  } else {
+    setRes('envLiff', 'ไม่ได้เปิดผ่าน LIFF (ไม่มี ?liffId= ใน URL) — ถ้าทดสอบ LIFF ให้เปิดผ่านลิงก์ liff.line.me');
+  }
+
+  // ---- 1. วินิจฉัย getUserMedia ----
+  var stream = null;
+  var btnDiag = document.getElementById('btnDiag');
+  var btnStop = document.getElementById('btnStop');
+  btnDiag.addEventListener('click', function(){
+    if (!hasGm) { setRes('diagRes', 'ไม่มี getUserMedia ให้เรียก — จบตรงนี้', false); log('ไม่มี getUserMedia'); return; }
+    btnDiag.disabled = true;
+    setRes('diagRes', 'กำลังวินิจฉัย…');
+    log('— เริ่มวินิจฉัย getUserMedia —');
+    var chain = Promise.resolve();
+    chain = chain.then(function(){
+      return navigator.mediaDevices.enumerateDevices().then(function(devs){
+        var vids = devs.filter(function(d){ return d.kind === 'videoinput'; });
+        log('enumerateDevices: videoinput ' + vids.length + ' ตัว; labels: ' + (vids.map(function(d){ return d.label || '(ว่าง)'; }).join(' | ') || '—'));
+      }).catch(function(e){ log('enumerateDevices ล้มเหลว: ' + e.name + ' ' + (e.message || '')); });
+    }).then(function(){
+      if (!navigator.permissions) { log('ไม่มี navigator.permissions'); return; }
+      return navigator.permissions.query({ name: 'camera' }).then(function(p){
+        log('permissions.query(camera): ' + p.state);
+      }).catch(function(e){ log('permissions.query ล้มเหลว: ' + e.name + ' ' + (e.message || '')); });
+    }).then(function(){
+      var settled = false;
+      var p = navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      p.then(function(s){
+        if (!settled) {
+          settled = true;
+          stream = s;
+          var t = s.getVideoTracks()[0];
+          var info = t ? (t.label + ' ' + JSON.stringify(t.getSettings())) : '(ไม่มี track)';
+          log('getUserMedia สำเร็จ! track: ' + info);
+          setRes('diagRes', 'สำเร็จ — กล้องเปิดได้ ✓', true);
+          var v = document.getElementById('preview');
+          v.srcObject = s; v.style.display = 'block';
+          btnStop.style.display = 'inline-block';
+          btnDiag.disabled = false;
+        } else {
+          log('getUserMedia resolve ช้า (หลัง 8 วิ) — สตรีมมาแล้วแต่เลยเวลา');
+          s.getTracks().forEach(function(tr){ tr.stop(); });
+        }
+      }).catch(function(e){
+        if (!settled) {
+          settled = true;
+          log('getUserMedia ปฏิเสธ: ' + e.name + ' — ' + (e.message || ''));
+          setRes('diagRes', 'ล้มเหลว: ' + e.name, false);
+          btnDiag.disabled = false;
+        } else {
+          log('getUserMedia reject ช้า: ' + e.name);
+        }
+      });
+      setTimeout(function(){
+        if (!settled) {
+          log('ครบ 8 วินาที: getUserMedia ยังไม่ resolve และไม่ reject — host ไม่ตอบสนอง (ค้าง)');
+          setRes('diagRes', 'ค้างเกิน 8 วินาที — ไม่มีการตอบสนอง', false);
+          btnDiag.disabled = false;
+        }
+      }, 8000);
+      log('เรียก getUserMedia แล้ว — รอผล…');
+    });
+  });
+  btnStop.addEventListener('click', function(){
+    if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+    document.getElementById('preview').style.display = 'none';
+    btnStop.style.display = 'none';
+    log('หยุดกล้องแล้ว');
+  });
+
+  // ---- 2. ตัวแปร input ----
+  function bindInput(id, resId, label){
+    var inp = document.getElementById(id);
+    inp.addEventListener('click', function(){ log(label + ': แตะ input แล้ว — รอ picker/กล้อง…'); });
+    inp.addEventListener('change', function(){
+      var f = inp.files && inp.files[0];
+      if (f) {
+        log(label + ': ได้ไฟล์ ' + f.name + ' | type=' + f.type + ' | size=' + f.size + ' bytes');
+        setRes(resId, 'ได้ไฟล์: ' + f.name + ' (' + f.type + ', ' + f.size + ' bytes)', true);
+      } else {
+        log(label + ': change แต่ไม่มีไฟล์ (ยกเลิก?)');
+        setRes(resId, 'ยกเลิก / ไม่มีไฟล์', false);
+      }
+    });
+  }
+  bindInput('inA1', 'resA1', 'A1 plain');
+  bindInput('inA2', 'resA2', 'A2 allowCamera');
+  bindInput('inA3', 'resA3', 'A3 pdf');
+  bindInput('inA4a', 'resA4a', 'A4a capture=camera');
+  bindInput('inA4b', 'resA4b', 'A4b capture bare');
+  bindInput('inA5a', 'resA5a', 'A5 ถ่ายใหม่');
+  bindInput('inA5b', 'resA5b', 'A5 เลือกจากคลัง');
+
+  // ---- 3. คัดลอกผล ----
+  function copyText(text, okMsg, failMsg){
+    function done(ok){ setRes('copyRes', ok ? okMsg : failMsg, ok); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta);
+      done(ok);
+    }
+  }
+  document.getElementById('btnCopy').addEventListener('click', function(){
+    copyText(logPre.textContent, 'คัดลอกแล้ว ✓ วางในแชตส่งกลับมาได้เลย', 'คัดลอกอัตโนมัติไม่ได้ — เลือกข้อความในกล่องแล้วคัดลอกเอง');
+  });
+
+  // ---- 4. ลิงก์ Custom Tab ----
+  var base = location.href.split('?')[0];
+  var cctUrl = base + '?openInAppBrowser=0';
+  document.getElementById('cctLink').textContent = cctUrl;
+  document.getElementById('btnCopyCct').addEventListener('click', function(){
+    copyText(cctUrl, 'คัดลอกลิงก์ Custom Tab แล้ว ✓', 'คัดลอกไม่ได้ — เลือกข้อความแล้วคัดลอกเอง');
+  });
+
+  log('หน้าโหลดเสร็จ — พร้อมทดสอบ');
+})();
+</script>
+</body>
+</html>
